@@ -10,7 +10,7 @@ st.set_page_config(
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>IM_SINGLE_POSITION - QCCP</p>", unsafe_allow_html=True)
 qccp_margins = pd.DataFrame({'SYMBOL':['Future', 'Call', 'Put'], 'LONG':[1000, 180, 130], 'SHORT':[950, 190, 145]})
 qccp_margins = qccp_margins.set_index('SYMBOL')
-st.session_state['qccp_margins'] = st.sidebar.data_editor(qccp_margins, disabled='SYMBOL')
+st.session_state['qccp_margins'] = st.sidebar.data_editor(qccp_margins, disabled=('SYMBOL'))
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>ITD THEORETICAL PRICES - MITCH</p>", unsafe_allow_html=True)
 theor_prices = pd.DataFrame({'SYMBOL':['Future', 'Call', 'Put'], 'THEORETICAL PRICE':[9500., 5.3, 3.2],
                             'CONTRACT SIZE':[1000, 5, 5]})
