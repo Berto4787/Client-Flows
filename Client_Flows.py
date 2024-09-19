@@ -268,15 +268,15 @@ st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>
 with st.expander('Click to see break down'):
     with st.container():
         cli, ccp = st.columns([1,1])
+        st.session_state['client_margin_req'] = st.session_state['sod_collateral']
         if st.session_state['open_pos'].shape[0]:
-            if st.session_state['calc_type'] == 'EoD':
-                cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT OPEN POSITION</p>", unsafe_allow_html=True)
-                open_pos_req = st.session_state['open_pos'].pivot_table(index=['CLIENT'], values=['TOTAL REQUIREMENT'],
-                                                                        aggfunc='sum')
-                st.session_state['client_margin_req'] = st.session_state['client_margin_req'].join(open_pos_req, how='left')
-                st.session_state['client_margin_req'] = st.session_state['client_margin_req'].rename(columns={'TOTAL REQUIREMENT': 'OPEN POSITION REQ'})
-            else:
-                st.session_state['client_margin_req'] = st.session_state['client_margin_req'].assign(**{'OPEN POSITION REQ': 0.})
+            cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT OPEN POSITION</p>", unsafe_allow_html=True)
+            open_pos_req = st.session_state['open_pos'].pivot_table(index=['CLIENT'], values=['TOTAL REQUIREMENT'],
+                                                                    aggfunc='sum')
+            st.session_state['client_margin_req'] = st.session_state['client_margin_req'].join(open_pos_req, how='left')
+            st.session_state['client_margin_req'] = st.session_state['client_margin_req'].rename(columns={'TOTAL REQUIREMENT': 'OPEN POSITION REQ'})
+        else:
+            st.session_state['client_margin_req'] = st.session_state['client_margin_req'].assign(**{'OPEN POSITION REQ': 0.})
         if 'orders' in st.session_state.keys():
             accepted_orders = st.session_state['orders'][st.session_state['orders'].STATUS=='ACCEPTED']
             if accepted_orders.shape[0]:
