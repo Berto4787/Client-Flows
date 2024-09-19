@@ -245,7 +245,7 @@ with st.expander('Click to see break down'):
                 ccp.dataframe(st.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'EOD PRICE T', 'CONTRACT SIZE', 'RVM', 'NLV', 'PENDING PREMIUM']],
                               use_container_width=True, hide_index=True)
             elif st.session_state['calc_type'] == 'ItD':
-                cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENTS OPEN POSITION</p>", unsafe_allow_html=True)
+                cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT OPEN POSITION</p>", unsafe_allow_html=True)
                 cli.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'CVM', 'PENDING PREMIUM', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
                 ccp.markdown("<p style='text-align: center;'font-size:18px;'>CM - CCP OPEN POSITION</p>", unsafe_allow_html=True)
                 st.session_state['open_pos_ccp'] = st.session_state['open_pos'].pivot_table(index=['SYMBOL'],
