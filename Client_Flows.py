@@ -263,8 +263,8 @@ with st.expander('Click to see break down'):
                 ccp.dataframe(st.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'THEORETICAL PRICE', 'CONTRACT SIZE', 'CVM', 'NLV', 'PENDING PREMIUM']],
                               use_container_width=True, hide_index=True)
 
-##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - BREAK DOWN #####
-st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP MARGIN REQUIREMENTS</p>", unsafe_allow_html=True)
+##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - COLLATERAL #####
+st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
 with st.expander('Click to see break down'):
     with st.container():
         cli, ccp = st.columns([1,1])
@@ -295,30 +295,3 @@ with st.expander('Click to see break down'):
         cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT OPEN POSITION</p>", unsafe_allow_html=True)
         cli.dataframe(st.session_state['client_bp'],use_container_width=True)
             
-##### CLIENTS BUYING POWER CALCULATION #####
-st.session_state['client_bp'] = st.session_state['sod_collateral']
-if st.session_state['open_pos'].shape[0]:
-    open_pos_req = st.session_state['open_pos'].pivot_table(index=['CLIENT'], values=['TOTAL REQUIREMENT'],
-                                                            aggfunc='sum')
-    st.session_state['client_bp'] = st.session_state['client_bp'].join(open_pos_req, how='left')
-    st.session_state['client_bp'] = st.session_state['client_bp'].rename(columns={'TOTAL REQUIREMENT': 'OPEN POSITION REQ'})
-else:
-    st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'OPEN POSITION REQ': 0.})
-if 'orders' in st.session_state.keys():
-    accepted_orders = st.session_state['orders'][st.session_state['orders'].STATUS=='ACCEPTED']
-    if accepted_orders.shape[0]:
-        accepted_orders = accepted_orders.pivot_table(index=['CLIENT'], values=['TOTAL REQUIREMENT'],
-                                                      aggfunc='sum')
-        st.session_state['client_bp'] = st.session_state['client_bp'].join(accepted_orders, how='left')
-        st.session_state['client_bp'] = st.session_state['client_bp'].rename(columns={'TOTAL REQUIREMENT': 'OUTSTANDING ORDERS REQ'})
-    else:
-        st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'OUTSTANDING ORDERS REQ': 0.})
-else:
-    st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'OUTSTANDING ORDERS REQ': 0.})
-
-st.session_state['client_bp'] = st.session_state['client_bp'].fillna(0)
-st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'BUYING POWER': np.maximum(np.subtract(st.session_state['client_bp'].COLLATERAL, 
-                                                                                                               np.add(st.session_state['client_bp']['OPEN POSITION REQ'],
-                                                                                                                      st.session_state['client_bp']['OUTSTANDING ORDERS REQ'])), 0)})
-st.markdown("<p style='text-align: center;'font-size:18px;'>CLIENT BUYING POWER - COMPUTED BY F/O & SENT TO B/O</p>", unsafe_allow_html=True)
-st.dataframe(st.session_state['client_bp'],use_container_width=True)
