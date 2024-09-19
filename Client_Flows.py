@@ -313,13 +313,13 @@ with st.expander('Click to see break down'):
         if st.session_state['calc_type'] == 'ItD':
             st.session_state['ccp_col_balance'] = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'], values=['CVM', 'NLV'],
                                                                                                aggfunc='sum')
-            st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'TOTAL LIABILITIES': np.subtract(np.add(st.session_state['open_pos']['CVM'],
-                                                                                                                                        st.session_state['open_pos']['NLV']),
-                                                                                                                                 st.session_state['open_pos']['IM'])})
+            st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'TOTAL LIABILITIES': np.subtract(np.add( st.session_state['ccp_col_balance']['CVM'],
+                                                                                                                                         st.session_state['ccp_col_balance']['NLV']),
+                                                                                                                                  st.session_state['ccp_col_balance']['IM'])})
         elif st.session_state['calc_type'] == 'EoD':
             st.session_state['ccp_col_balance'] = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'], values=['NLV'], aggfunc='sum')
-            st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'TOTAL LIABILITIES': np.subtract(st.session_state['open_pos']['NLV'],
-                                                                                                                                 st.session_state['open_pos']['IM'])})
+            st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'TOTAL LIABILITIES': np.subtract( st.session_state['ccp_col_balance']['NLV'],
+                                                                                                                                  st.session_state['ccp_col_balance']['IM'])})
         # Include required collateral
         ccp.markdown("<p style='text-align: center;'font-size:18px;'>CM - CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
         ccp.dataframe(st.session_state['ccp_col_balance'],use_container_width=True)
