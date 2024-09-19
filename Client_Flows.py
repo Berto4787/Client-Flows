@@ -169,14 +169,14 @@ with st.expander('Click to see break down'):
     if 'trades' in st.session_state.keys():
         if st.session_state['calc_type'] == 'EoD':
             st.markdown("<p style='text-align: center;'font-size:18px;'>EXECUTED TRADES - CVM CALCULATION</p>", unsafe_allow_html=True)
-             st.dataframe(st.session_state['trades'], use_container_width=True, hide_index=True)
+            st.dataframe(st.session_state['trades'], use_container_width=True, hide_index=True)
             st.text_area("",
                          """ Realized Variation Margin (RVM) should be computed EoD by B/O system to MtM each trade on futures to EoD official settlement price.
                          RVM = Quantity * Contract Size * (EoD Price T - Execution Price)""", disabled=True)
             
         elif st.session_state['calc_type'] == 'ItD':
             st.markdown("<p style='text-align: center;'font-size:18px;'>EXECUTED TRADES - RVM CALCULATION</p>", unsafe_allow_html=True)
-             st.dataframe(st.session_state['trades'], use_container_width=True, hide_index=True)
+            st.dataframe(st.session_state['trades'], use_container_width=True, hide_index=True)
             st.text_area("",
                          """ Contingen Variation Margin (CVM) should be computed ItD by F/O system for each trade on futures as a component of Buying Power computation.
                          CVM = Quantity * Contract Size * (ItD Theoretical Price - Execution Price)""", 
