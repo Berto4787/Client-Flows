@@ -39,6 +39,14 @@ sod_collateral = pd.DataFrame({'CLIENT': ['Client 1', 'Client 2', 'Client 3'],
 sod_collateral = sod_collateral.set_index('CLIENT')
 st.session_state['sod_collateral'] = st.sidebar.data_editor(sod_collateral, disabled=('CLIENT'))
 
+st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>CM COLLATERAL AT CCP</p>", unsafe_allow_html=True)
+sod_collateral_ccp = pd.DataFrame({'COLLATERAL ACCOUNT': ['OSA'],
+                                   'COLLATERAL': [2000000]},
+                                  index= np.arange(1))
+sod_collateral_ccp = sod_collateral_ccp.set_index('COLLATERAL ACCOUNT')
+st.session_state['sod_collateral_ccp'] = st.sidebar.data_editor(sod_collateral_ccp, disabled=('COLLATERAL ACCOUNT'))
+
+
 st.session_state['calc_type'] = st.selectbox('TYPE OF CALCULATION', options=['ItD', 'EoD'], index=0)
 ##### SoD OPEN POSITION #####
 st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>SoD OPEN POSITION</p>", unsafe_allow_html=True)
@@ -268,6 +276,7 @@ st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>
 with st.expander('Click to see break down'):
     with st.container():
         cli, ccp = st.columns([1,1])
+        # Client - Broker
         st.session_state['client_bp'] = st.session_state['sod_collateral']
         if st.session_state['open_pos'].shape[0]:
             open_pos_req = st.session_state['open_pos'].pivot_table(index=['CLIENT'], values=['TOTAL REQUIREMENT'],
@@ -296,4 +305,7 @@ with st.expander('Click to see break down'):
                                                                                                                                   st.session_state['client_bp']['OUTSTANDING ORDERS REQ'])), 0)})
             cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT OPEN POSITION</p>", unsafe_allow_html=True)
             cli.dataframe(st.session_state['client_bp'],use_container_width=True)
-            
+
+        # Broker - CCP
+        # st.session_state['ccp_col_balance'] = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'],
+
