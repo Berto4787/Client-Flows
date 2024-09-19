@@ -127,14 +127,14 @@ if st.session_state['calc_type'] == 'EoD':
     st.session_state['prev_day_pos_calc'] =st.session_state['prev_day_pos_calc'].assign(**{'CVM': np.where(st.session_state['prev_day_pos_calc'].SYMBOL!='Future', 0.,
                                                                                                            np.multiply(np.multiply(st.session_state['prev_day_pos_calc'].QUANTITY,
                                                                                                                        st.session_state['prev_day_pos_calc']['CONTRACT SIZE']),
-                                                                                                           np.subtract(st.session_state['prev_day_pos_calc']['THEORETICAL PRICE'],st.session_state['prev_day_pos_calc']['EOD PRICE T-1']))),
+                                                                                                           np.subtract(st.session_state['prev_day_pos_calc']['EOD PRICE T'],st.session_state['prev_day_pos_calc']['EOD PRICE T-1']))),
                                                                                            'PENDING PREMIUM': 0.})
 elif st.session_state['calc_type'] == 'ItD':
     st.dataframe(st.session_state['prev_day_pos_calc'])
     st.session_state['prev_day_pos_calc'] =st.session_state['prev_day_pos_calc'].assign(**{'RVM': np.where(st.session_state['prev_day_pos_calc'].SYMBOL!='Future', 0.,
                                                                                                            np.multiply(np.multiply(st.session_state['prev_day_pos_calc'].QUANTITY,
                                                                                                                                    st.session_state['prev_day_pos_calc']['CONTRACT SIZE']),
-                                                                                                                       np.subtract(st.session_state['prev_day_pos_calc']['EOD PRICE T'],st.session_state['prev_day_pos_calc']['EOD PRICE T-1']))),
+                                                                                                                       np.subtract(st.session_state['prev_day_pos_calc']['THEORETICAL PRICE'],st.session_state['prev_day_pos_calc']['EOD PRICE T-1']))),
                                                                                            'PENDING PREMIUM': 0.})
 if st.session_state['prev_day_pos_calc'].shape[0]:
     if st.session_state['calc_type'] == 'EoD':
