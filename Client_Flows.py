@@ -256,7 +256,7 @@ with st.container():
                                                                                        'NLV': np.where( st.session_state['open_pos_ccp']['SYMBOL']!='Future',
                                                                                                        np.multiply(st.session_state['open_pos_ccp']['QUANTITY'],
                                                                                                                    np.multiply(st.session_state['open_pos_ccp']['THEORETICAL PRICE'],
-                                                                                                                               st.session_state['open_pos_ccp']['CONTRACT SIZE']))})
+                                                                                                                               st.session_state['open_pos_ccp']['CONTRACT SIZE'])))})
           st.dataframe(ccp.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'THEORETICAL PRICE', 'CONTRACT SIZE', 'CVM', 'NLV', 'PENDING PREMIUM']], 
                        use_container_width=True, hide_index=True)
 
