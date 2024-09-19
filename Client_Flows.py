@@ -102,8 +102,8 @@ with st.container():
             new_pos = new_pos.assign(**{'CVM': np.where(st.session_state['new_instrument']!='Future', 0.,
                                                         np.where(st.session_state['new_side'] == 'Buy', 1, -1) * st.session_state['new_quantity'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['CONTRACT SIZE'] * (st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['THEORETICAL PRICE']-st.session_state['new_price']))})
 
-      new_pos = new_pos.assign(**{'PENDING PREMIUM': np.where(st.session_state['new_instrument']=='Future', 0.,
-                                                              np.where(st.session_state['new_side'] == 'Buy', -1, 1) * st.session_state['new_quantity'] * st.session_state['new_price'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['CONTRACT SIZE'])})
+        new_pos = new_pos.assign(**{'PENDING PREMIUM': np.where(st.session_state['new_instrument']=='Future', 0.,
+                                                                np.where(st.session_state['new_side'] == 'Buy', -1, 1) * st.session_state['new_quantity'] * st.session_state['new_price'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['CONTRACT SIZE'])})
 
       if 'trades' not in st.session_state.keys():                               
         st.session_state['trades'] = new_pos
