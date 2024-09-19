@@ -123,6 +123,7 @@ elif st.session_state['calc_type'] == 'ItD':
 
 st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos'][st.session_state['prev_day_pos']['QUANTITY'] !=0]
 if st.session_state['calc_type'] == 'EoD':
+    st.dataframe(st.session_state['prev_day_pos_calc'])
     st.session_state['prev_day_pos_calc'] =st.session_state['prev_day_pos_calc'].assign(**{'CVM': np.where(st.session_state['prev_day_pos_calc'].SYMBOL!='Future', 0.,
                                                                                                            np.multiply(np.multiply(st.session_state['prev_day_pos_calc'].QUANTITY,
                                                                                                                        st.session_state['prev_day_pos_calc']['CONTRACT SIZE']),
