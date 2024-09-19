@@ -122,7 +122,7 @@ with st.container():
                                                                                         aggfunc='sum')
         st.session_state['day_trades'] = st.session_state['day_trades'].reset_index()
 
-##### CVM/RVM CALCULATION #####
+##### CVM/RVM CALCULATION SoD POSITION #####
 st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos'].set_index('SYMBOL').join(st.session_state['eod_prices'], how='left')
 st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos_calc'].join(st.session_state['theor_prices'], how='left')
 st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos_calc'].reset_index()
@@ -142,26 +142,37 @@ if st.session_state['calc_type'] == 'EoD':
                                                                                                            np.subtract(st.session_state['prev_day_pos_calc']['EOD PRICE T'],st.session_state['prev_day_pos_calc']['EOD PRICE T-1']))),
                                                                                            'PENDING PREMIUM': 0.})
 elif st.session_state['calc_type'] == 'ItD':
-    st.dataframe(st.session_state['prev_day_pos_calc'])
     st.session_state['prev_day_pos_calc'] =st.session_state['prev_day_pos_calc'].assign(**{'CVM': np.where(st.session_state['prev_day_pos_calc'].SYMBOL!='Future', 0.,
                                                                                                            np.multiply(np.multiply(st.session_state['prev_day_pos_calc'].QUANTITY,
                                                                                                                                    st.session_state['prev_day_pos_calc']['CONTRACT SIZE']),
                                                                                                                        np.subtract(st.session_state['prev_day_pos_calc']['THEORETICAL PRICE'],st.session_state['prev_day_pos_calc']['EOD PRICE T-1']))),
                                                                                            'PENDING PREMIUM': 0.})
-if st.session_state['prev_day_pos_calc'].shape[0]:
-    if st.session_state['calc_type'] == 'EoD':
-        st.markdown("<p style='text-align: center;'font-size:18px;'>SoD OPEN POSITION - RVM CALCULATION </p>", unsafe_allow_html=True)
-        st.dataframe(st.session_state['prev_day_pos_calc'], use_container_width=True, hide_index=True)
-        st.text_area("Realized Variation Margin (RVM) will be computed EoD for futures positions carried forward from previous day as:" 
-                        "Quantity * Contract Size * (T EoD Price - T-1 EoD Price)"
-                        "As premiums are settled upfront at the day in which they are traded, no pending premiums will be left to be settled on the following sessions")
-    elif st.session_state['calc_type'] == 'ItD':        
-        st.markdown("<p style='text-align: center;'font-size:18px;'>SoD OPEN POSITION - CVM CALCULATION </p>", unsafe_allow_html=True) 
-        st.dataframe(st.session_state['prev_day_pos_calc'], use_container_width=True, hide_index=True)
-        st.text_area("Contingent Variation Margin (CVM) will be computed ItD for futures positions carried forward from previous day as:" 
-                        "Quantity * Contract Size * (Theor Price - T-1 EoD Price)"
-                        "As premiums are settled upfront at the day in which they are traded, no pending premiums will be left to be settled on the following sessions")
-                 
+
+if st.session_state['calc_type'] == 'EoD':
+    st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>REALIZED VARIATION MARGIN - BREAK DOWN</p>", unsafe_allow_html=True)
+elif st.session_state['calc_type'] == 'ItD':
+    st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CONTINGENT VARIATION MARGIN - BREAK DOWN</p>", unsafe_allow_html=True)
+with st.expander('Click to see break down'):
+    if st.session_state['prev_day_pos_calc'].shape[0]:
+        if st.session_state['calc_type'] == 'EoD':
+            st.markdown("<p style='text-align: center;'font-size:18px;'>SoD OPEN POSITION - RVM CALCULATION </p>", unsafe_allow_html=True)
+            st.dataframe(st.session_state['prev_day_pos_calc'], use_container_width=True, hide_index=True)
+            st.text_area("Realized Variation Margin (RVM) will be computed EoD for futures positions carried forward from previous day as:" 
+                            "Quantity * Contract Size * (T EoD Price - T-1 EoD Price)"
+                            "As premiums are settled upfront at the day in which they are traded, no pending premiums will be left to be settled on the following sessions")
+        elif st.session_state['calc_type'] == 'ItD':        
+            st.markdown("<p style='text-align: center;'font-size:18px;'>SoD OPEN POSITION - CVM CALCULATION </p>", unsafe_allow_html=True) 
+            st.dataframe(st.session_state['prev_day_pos_calc'], use_container_width=True, hide_index=True)
+            st.text_area("Contingent Variation Margin (CVM) will be computed ItD for futures positions carried forward from previous day as:" 
+                            "Quantity * Contract Size * (Theor Price - T-1 EoD Price)"
+                            "As premiums are settled upfront at the day in which they are traded, no pending premiums will be left to be settled on the following sessions")
+
+    if 'trades' in st.session_state.keys():
+        if st.session_state['calc_type'] == 'EoD':
+            st.markdown("<p style='text-align: center;'font-size:18px;'>EXECUTED TRADES - CVM CALCULATION</p>", unsafe_allow_html=True)
+        elif st.session_state['calc_type'] == 'ItD':
+            st.markdown("<p style='text-align: center;'font-size:18px;'>EXECUTED TRADES - RVM CALCULATION</p>", unsafe_allow_html=True)
+        st.dataframe(st.session_state['trades'], use_container_width=True, hide_index=True)
                  
 if 'day_trades' in st.session_state.keys():
     if st.session_state['calc_type'] == 'EoD':
@@ -197,11 +208,9 @@ if 'open_pos' in st.session_state.keys():
     st.session_state['open_pos'] = st.session_state['open_pos'].drop(columns=['MM'])
 
 if 'orders' in st.session_state.keys():
-  st.markdown("<p style='text-align: center;'font-size:18px;'>OUTSTANDING ORDERS</p>", unsafe_allow_html=True)
-  st.dataframe(st.session_state['orders'], use_container_width=True, hide_index=True)
-if 'trades' in st.session_state.keys():
-  st.markdown("<p style='text-align: center;'font-size:18px;'>EXECUTED TRADES - DAY T</p>", unsafe_allow_html=True)
-  st.dataframe(st.session_state['trades'], use_container_width=True, hide_index=True)
+    st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>OUTSTANDING ORDERS</p>", unsafe_allow_html=True)
+    with st.expander('Click to display outstanding orders'):
+        st.dataframe(st.session_state['orders'], use_container_width=True, hide_index=True)
 if st.session_state['open_pos'].shape[0]:
   st.markdown("<p style='text-align: center;'font-size:18px;'>CLIENTS OPEN POSITION</p>", unsafe_allow_html=True)
   if st.session_state['calc_type'] == 'EoD':
