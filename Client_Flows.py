@@ -93,7 +93,7 @@ with st.container():
                                                                                   aggfunc='sum')
       st.session_state['day_trades'] = st.session_state['day_trades'].reset_index()
 
-st.markdown("<p style='text-align: center;'font-size:18px;'>T-1 EOD OPEN POSITION</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'font-size:18px; font-weight: bold'>SoD OPEN POSITION</p>", unsafe_allow_html=True)
 prev_day_pos = pd.DataFrame({'SYMBOL': ['Future', 'Call', 'Put', 'Future', 'Call', 'Put', 'Future', 'Call', 'Put'],
                               'CLIENT': ['Client 1', 'Client 1', 'Client 1', 'Client 2', 'Client 2', 'Client 2', 'Client 3', 'Client 3', 'Client 3'],
                               'QUANTITY': [0., 0., 0., 0., 0., 0., 0., 0., 0.]},
@@ -102,9 +102,14 @@ prev_day_pos = prev_day_pos.set_index('SYMBOL').join(st.session_state['eod_price
 prev_day_pos = prev_day_pos.join(st.session_state['theor_prices'], how='left')
 prev_day_pos = prev_day_pos.reset_index()
 prev_day_pos = prev_day_pos[['SYMBOL', 'CLIENT', 'QUANTITY', 'EOD PRICE T-1', 'THEORETICAL PRICE', 'CONTRACT SIZE']]
-st.session_state['prev_day_pos'] = st.data_editor(prev_day_pos, 
-                                                  disabled=('SYMBOL', 'CLIENT', 'EOD PRICE T-1', 'THEORETICAL PRICE', 'CONTRACT SIZE'),
-                                                 use_container_width=True, hide_index=True)
+with st.expander('Click to input SoD client portfolios'):
+    st.session_state['prev_day_pos'] = st.data_editor(prev_day_pos, 
+                                                      disabled=('SYMBOL', 'CLIENT', 'EOD PRICE T-1', 'THEORETICAL PRICE', 'CONTRACT SIZE'),
+                                                     use_container_width=True, hide_index=True)
+    st.text_area("",
+                 """ Clients' net position at SoD. To be mantained by B/O system and disseminated to F/O at SoD.
+                         - Quantity: Positive amount indicates long net position whereas negative indices short net position.
+                    """, disabled=True)
 
 
 st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos'][st.session_state['prev_day_pos']['QUANTITY'] !=0]
