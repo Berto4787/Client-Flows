@@ -151,7 +151,7 @@ elif st.session_state['calc_type'] == 'ItD':
 if st.session_state['calc_type'] == 'EoD':
     st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>REALIZED VARIATION MARGIN - BREAK DOWN</p>", unsafe_allow_html=True)
 elif st.session_state['calc_type'] == 'ItD':
-    st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CONTINGENT VARIATION MARGIN - BREAK DOWN</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CONTINGENT VARIATION MARGIN & PENDING PREMIUM - BREAK DOWN</p>", unsafe_allow_html=True)
 with st.expander('Click to see break down'):
     if st.session_state['prev_day_pos_calc'].shape[0]:
         if st.session_state['calc_type'] == 'EoD':
@@ -223,7 +223,7 @@ if 'orders' in st.session_state.keys():
 st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP OPEN POSITION - BREAK DOWN</p>", unsafe_allow_html=True)
 with st.container():
     cli, ccp = st.columns([1,1])
-    with st.expander():
+    with st.expander('Click to see break down'):
         if st.session_state['open_pos'].shape[0]:
             if st.session_state['calc_type'] == 'EoD':
                 cli.markdown("<p style='text-align: center;'font-size:18px;'>CLIENTS OPEN POSITION</p>", unsafe_allow_html=True)
