@@ -120,7 +120,7 @@ with st.container():
             st.session_state['day_trades'] = st.session_state['day_trades'].pivot_table(index=['CLIENT', 'SYMBOL'],
                                                                                         values=['QUANTITY', 'PENDING PREMIUM', 'CVM'],
                                                                                         aggfunc='sum')
-          st.session_state['day_trades'] = st.session_state['day_trades'].reset_index()
+        st.session_state['day_trades'] = st.session_state['day_trades'].reset_index()
 
 ##### CVM/RVM CALCULATION #####
 st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos'].set_index('SYMBOL').join(st.session_state['eod_prices'], how='left')
