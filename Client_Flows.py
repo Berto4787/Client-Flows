@@ -121,7 +121,7 @@ if st.session_state['calc_type'] == 'EoD':
 elif st.session_state['calc_type'] == 'ItD':
     st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos_calc'][['SYMBOL', 'CLIENT', 'QUANTITY', 'EOD PRICE T-1', 'THEORETICAL PRICE', 'CONTRACT SIZE']]
 
-st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos_calc'][t.session_state['prev_day_pos_calc']['QUANTITY'] !=0]
+st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos_calc'][st.session_state['prev_day_pos_calc']['QUANTITY'] !=0]
 if st.session_state['calc_type'] == 'EoD':
     st.dataframe(st.session_state['prev_day_pos_calc'])
     st.session_state['prev_day_pos_calc'] =st.session_state['prev_day_pos_calc'].assign(**{'CVM': np.where(st.session_state['prev_day_pos_calc'].SYMBOL!='Future', 0.,
