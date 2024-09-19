@@ -219,10 +219,11 @@ if 'orders' in st.session_state.keys():
     st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>OUTSTANDING ORDERS</p>", unsafe_allow_html=True)
     with st.expander('Click to display outstanding orders'):
         st.dataframe(st.session_state['orders'], use_container_width=True, hide_index=True)
+##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - BREAK DOWN #####
+st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP OPEN POSITION - BREAK DOWN</p>", unsafe_allow_html=True)
 with st.container():
     cli, ccp = st.columns([1,1])
     if st.session_state['open_pos'].shape[0]:
-      st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP OPEN POSITION</p>", unsafe_allow_html=True)
       if st.session_state['calc_type'] == 'EoD':
           cli.markdown("<p style='text-align: center;'font-size:18px;'>CLIENTS OPEN POSITION</p>", unsafe_allow_html=True)
           cli.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'RVM', 'PENDING PREMIUM', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
