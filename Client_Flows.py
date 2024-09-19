@@ -112,9 +112,9 @@ with st.container():
 
 ##### CVM/RVM CALCULATION #####
 st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos'].set_index('SYMBOL').join(st.session_state['eod_prices'], how='left')
-st.dataframe(st.session_state['prev_day_pos_calc'])
 st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos_calc'].join(st.session_state['theor_prices'], how='left')
-st.session_state['prev_day_pos_calc'] = prev_day_pos.reset_index()
+st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos_calc'].reset_index()
+
 if st.session_state['calc_type'] == 'EoD':
     st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos_calc'][['SYMBOL', 'CLIENT', 'QUANTITY', 'EOD PRICE T-1', 'EOD PRICE T', 'CONTRACT SIZE']]
     
