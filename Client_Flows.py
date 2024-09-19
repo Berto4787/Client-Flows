@@ -240,7 +240,7 @@ with st.container():
                                                                                                                    np.multiply(st.session_state['open_pos_ccp']['EOD PRICE T'],
                                                                                                                                st.session_state['open_pos_ccp']['CONTRACT SIZE'])), 0.)
                                                                                                        })
-          ccp.dataframe(cli.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'EOD PRICE T', 'CONTRACT SIZE', 'RVM', 'NLV', 'PENDING PREMIUM']], 
+          ccp.dataframe(st.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'EOD PRICE T', 'CONTRACT SIZE', 'RVM', 'NLV', 'PENDING PREMIUM']], 
                        use_container_width=True, hide_index=True)
       elif st.session_state['calc_type'] == 'ItD':
           cli.markdown("<p style='text-align: center;'font-size:18px;'>CLIENTS OPEN POSITION</p>", unsafe_allow_html=True)
@@ -258,7 +258,7 @@ with st.container():
                                                                                                                    np.multiply(st.session_state['open_pos_ccp']['THEORETICAL PRICE'],
                                                                                                                                st.session_state['open_pos_ccp']['CONTRACT SIZE'])), 0.)
                                                                                        })
-          st.dataframe(ccp.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'THEORETICAL PRICE', 'CONTRACT SIZE', 'CVM', 'NLV', 'PENDING PREMIUM']], 
+          ccp.dataframe(st.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'THEORETICAL PRICE', 'CONTRACT SIZE', 'CVM', 'NLV', 'PENDING PREMIUM']], 
                        use_container_width=True, hide_index=True)
 
 st.session_state['client_bp'] = st.session_state['sod_collateral']
