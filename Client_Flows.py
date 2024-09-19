@@ -93,7 +93,7 @@ with st.container():
                                                                                   aggfunc='sum')
       st.session_state['day_trades'] = st.session_state['day_trades'].reset_index()
 
-st.markdown("<p style='text-align: center;'font-size:18px; font-weight: bold'>SoD OPEN POSITION</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>SoD OPEN POSITION</p>", unsafe_allow_html=True)
 prev_day_pos = pd.DataFrame({'SYMBOL': ['Future', 'Call', 'Put', 'Future', 'Call', 'Put', 'Future', 'Call', 'Put'],
                               'CLIENT': ['Client 1', 'Client 1', 'Client 1', 'Client 2', 'Client 2', 'Client 2', 'Client 3', 'Client 3', 'Client 3'],
                               'QUANTITY': [0., 0., 0., 0., 0., 0., 0., 0., 0.]},
