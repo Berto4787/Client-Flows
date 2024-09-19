@@ -105,22 +105,22 @@ with st.container():
         new_pos = new_pos.assign(**{'PENDING PREMIUM': np.where(st.session_state['new_instrument']=='Future', 0.,
                                                                 np.where(st.session_state['new_side'] == 'Buy', -1, 1) * st.session_state['new_quantity'] * st.session_state['new_price'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['CONTRACT SIZE'])})
 
-      if 'trades' not in st.session_state.keys():                               
-        st.session_state['trades'] = new_pos
-      else:
-        st.session_state['trades'] = pd.concat([st.session_state['trades'], new_pos], axis=0, ignore_index= True)
-      st.session_state['day_trades'] = st.session_state['trades'].assign(**{'QUANTITY': np.where(st.session_state['trades']['SIDE']=='Buy', 
-                                                                                                 st.session_state['trades']['QUANTITY'],
-                                                                                                 np.multiply( st.session_state['trades']['QUANTITY'], -1))})
-      if st.session_state['calc_type'] == 'EoD':
-          st.session_state['day_trades'] = st.session_state['day_trades'].pivot_table(index=['CLIENT', 'SYMBOL'], 
-                                                                                      values=['QUANTITY', 'PENDING PREMIUM', 'RVM'], 
-                                                                                      aggfunc='sum') 
-      elif st.session_state['calc_type'] == 'ItD':
-          st.session_state['day_trades'] = st.session_state['day_trades'].pivot_table(index=['CLIENT', 'SYMBOL'], 
-                                                                                      values=['QUANTITY', 'PENDING PREMIUM', 'CVM'], 
-                                                                                      aggfunc='sum')
-      st.session_state['day_trades'] = st.session_state['day_trades'].reset_index()
+        if 'trades' not in st.session_state.keys():                               
+            st.session_state['trades'] = new_pos
+        else:
+            st.session_state['trades'] = pd.concat([st.session_state['trades'], new_pos], axis=0, ignore_index= True)
+        st.session_state['day_trades'] = st.session_state['trades'].assign(**{'QUANTITY': np.where(st.session_state['trades']['SIDE']=='Buy',
+                                                                                                   st.session_state['trades']['QUANTITY'],
+                                                                                                   np.multiply( st.session_state['trades']['QUANTITY'], -1))})
+        if st.session_state['calc_type'] == 'EoD':
+            st.session_state['day_trades'] = st.session_state['day_trades'].pivot_table(index=['CLIENT', 'SYMBOL'],
+                                                                                        values=['QUANTITY', 'PENDING PREMIUM', 'RVM'],
+                                                                                        aggfunc='sum')
+        elif st.session_state['calc_type'] == 'ItD':
+            st.session_state['day_trades'] = st.session_state['day_trades'].pivot_table(index=['CLIENT', 'SYMBOL'],
+                                                                                        values=['QUANTITY', 'PENDING PREMIUM', 'CVM'],
+                                                                                        aggfunc='sum')
+          st.session_state['day_trades'] = st.session_state['day_trades'].reset_index()
 
 ##### CVM/RVM CALCULATION #####
 st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos'].set_index('SYMBOL').join(st.session_state['eod_prices'], how='left')
