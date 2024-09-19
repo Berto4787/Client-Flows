@@ -168,14 +168,14 @@ with st.expander('Click to see break down'):
 
     if 'trades' in st.session_state.keys():
         if st.session_state['calc_type'] == 'EoD':
-            st.markdown("<p style='text-align: center;'font-size:18px;'>EXECUTED TRADES - CVM CALCULATION</p>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align: center;'font-size:18px;'>EXECUTED TRADES - RVM CALCULATION</p>", unsafe_allow_html=True)
             st.dataframe(st.session_state['trades'], use_container_width=True, hide_index=True)
             st.text_area("",
                          """ Realized Variation Margin (RVM) should be computed EoD by B/O system to MtM each trade on futures to EoD official settlement price.
                          RVM = Quantity * Contract Size * (EoD Price T - Execution Price)""", disabled=True)
             
         elif st.session_state['calc_type'] == 'ItD':
-            st.markdown("<p style='text-align: center;'font-size:18px;'>EXECUTED TRADES - RVM CALCULATION</p>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align: center;'font-size:18px;'>EXECUTED TRADES - CVM CALCULATION</p>", unsafe_allow_html=True)
             st.dataframe(st.session_state['trades'], use_container_width=True, hide_index=True)
             st.text_area("",
                          """ Contingen Variation Margin (CVM) should be computed ItD by F/O system for each trade on futures as a component of Buying Power computation.
@@ -223,44 +223,45 @@ if 'orders' in st.session_state.keys():
 st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP OPEN POSITION - BREAK DOWN</p>", unsafe_allow_html=True)
 with st.container():
     cli, ccp = st.columns([1,1])
-    if st.session_state['open_pos'].shape[0]:
-      if st.session_state['calc_type'] == 'EoD':
-          cli.markdown("<p style='text-align: center;'font-size:18px;'>CLIENTS OPEN POSITION</p>", unsafe_allow_html=True)
-          cli.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'RVM', 'PENDING PREMIUM', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
-          st.markdown("<p style='text-align: center;'font-size:18px;'>CM - CCP OPEN POSITION</p>", unsafe_allow_html=True)
-          st.session_state['open_pos_ccp'] = st.session_state['open_pos'].pivot_table(index=['SYMBOL'],
-                                                                                      values= ['QUANTITY', 'RVM', 'PENDING PREMIUM'],
-                                                                                      aggfunc ='sum')
-          st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].reset_index()
-          st.session_state['open_pos_ccp'] =  st.session_state['open_pos_ccp'].set_index('SYMBOL').join(st.session_state['theor_prices'][['CONTRACT SIZE']], how='left')
-          st.session_state['open_pos_ccp'] =  st.session_state['open_pos_ccp'].join(st.session_state['eod_prices'][['EOD PRICE T']], how='left')
-          st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].reset_index()
-          st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].assign(**{'CLEARING ACCOUNT': 'OSA',
-                                                                                       'NLV': np.where( st.session_state['open_pos_ccp']['SYMBOL']!='Future',
-                                                                                                       np.multiply(st.session_state['open_pos_ccp']['QUANTITY'],
-                                                                                                                   np.multiply(st.session_state['open_pos_ccp']['EOD PRICE T'],
-                                                                                                                               st.session_state['open_pos_ccp']['CONTRACT SIZE'])), 0.)
-                                                                                                       })
-          ccp.dataframe(st.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'EOD PRICE T', 'CONTRACT SIZE', 'RVM', 'NLV', 'PENDING PREMIUM']], 
-                       use_container_width=True, hide_index=True)
-      elif st.session_state['calc_type'] == 'ItD':
-          cli.markdown("<p style='text-align: center;'font-size:18px;'>CLIENTS OPEN POSITION</p>", unsafe_allow_html=True)
-          cli.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'CVM', 'PENDING PREMIUM', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
-          ccp.markdown("<p style='text-align: center;'font-size:18px;'>CM - CCP OPEN POSITION</p>", unsafe_allow_html=True)
-          st.session_state['open_pos_ccp'] = st.session_state['open_pos'].pivot_table(index=['SYMBOL'],
-                                                                                      values= ['QUANTITY', 'CVM', 'PENDING PREMIUM'],
-                                                                                      aggfunc ='sum')
-          st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].reset_index()
-          st.session_state['open_pos_ccp'] =  st.session_state['open_pos_ccp'].set_index('SYMBOL').join(st.session_state['theor_prices'], how='left')
-          st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].reset_index()
-          st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].assign(**{'CLEARING ACCOUNT': 'OSA',
-                                                                                       'NLV': np.where( st.session_state['open_pos_ccp']['SYMBOL']!='Future',
-                                                                                                       np.multiply(st.session_state['open_pos_ccp']['QUANTITY'],
-                                                                                                                   np.multiply(st.session_state['open_pos_ccp']['THEORETICAL PRICE'],
-                                                                                                                               st.session_state['open_pos_ccp']['CONTRACT SIZE'])), 0.)
-                                                                                       })
-          ccp.dataframe(st.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'THEORETICAL PRICE', 'CONTRACT SIZE', 'CVM', 'NLV', 'PENDING PREMIUM']], 
-                       use_container_width=True, hide_index=True)
+    with st.expander():
+        if st.session_state['open_pos'].shape[0]:
+            if st.session_state['calc_type'] == 'EoD':
+                cli.markdown("<p style='text-align: center;'font-size:18px;'>CLIENTS OPEN POSITION</p>", unsafe_allow_html=True)
+                cli.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'RVM', 'PENDING PREMIUM', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
+                st.markdown("<p style='text-align: center;'font-size:18px;'>CM - CCP OPEN POSITION</p>", unsafe_allow_html=True)
+                st.session_state['open_pos_ccp'] = st.session_state['open_pos'].pivot_table(index=['SYMBOL'],
+                                                                                            values= ['QUANTITY', 'RVM', 'PENDING PREMIUM'],
+                                                                                            aggfunc ='sum')
+                st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].reset_index()
+                st.session_state['open_pos_ccp'] =  st.session_state['open_pos_ccp'].set_index('SYMBOL').join(st.session_state['theor_prices'][['CONTRACT SIZE']], how='left')
+                st.session_state['open_pos_ccp'] =  st.session_state['open_pos_ccp'].join(st.session_state['eod_prices'][['EOD PRICE T']], how='left')
+                st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].reset_index()
+                st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].assign(**{'CLEARING ACCOUNT': 'OSA',
+                                                                                              'NLV': np.where( st.session_state['open_pos_ccp']['SYMBOL']!='Future',
+                                                                                                              np.multiply(st.session_state['open_pos_ccp']['QUANTITY'],
+                                                                                                                          np.multiply(st.session_state['open_pos_ccp']['EOD PRICE T'],
+                                                                                                                                      st.session_state['open_pos_ccp']['CONTRACT SIZE'])), 0.)
+                                                                                             })
+                ccp.dataframe(st.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'EOD PRICE T', 'CONTRACT SIZE', 'RVM', 'NLV', 'PENDING PREMIUM']],
+                              use_container_width=True, hide_index=True)
+            elif st.session_state['calc_type'] == 'ItD':
+                cli.markdown("<p style='text-align: center;'font-size:18px;'>CLIENTS OPEN POSITION</p>", unsafe_allow_html=True)
+                cli.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'CVM', 'PENDING PREMIUM', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
+                ccp.markdown("<p style='text-align: center;'font-size:18px;'>CM - CCP OPEN POSITION</p>", unsafe_allow_html=True)
+                st.session_state['open_pos_ccp'] = st.session_state['open_pos'].pivot_table(index=['SYMBOL'],
+                                                                                            values= ['QUANTITY', 'CVM', 'PENDING PREMIUM'],
+                                                                                            aggfunc ='sum')
+                st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].reset_index()
+                st.session_state['open_pos_ccp'] =  st.session_state['open_pos_ccp'].set_index('SYMBOL').join(st.session_state['theor_prices'], how='left')
+                st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].reset_index()
+                st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].assign(**{'CLEARING ACCOUNT': 'OSA',
+                                                                                              'NLV': np.where( st.session_state['open_pos_ccp']['SYMBOL']!='Future',
+                                                                                                              np.multiply(st.session_state['open_pos_ccp']['QUANTITY'],
+                                                                                                                          np.multiply(st.session_state['open_pos_ccp']['THEORETICAL PRICE'],
+                                                                                                                                      st.session_state['open_pos_ccp']['CONTRACT SIZE'])), 0.)
+                                                                                             })
+                ccp.dataframe(st.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'THEORETICAL PRICE', 'CONTRACT SIZE', 'CVM', 'NLV', 'PENDING PREMIUM']],
+                              use_container_width=True, hide_index=True)
 
 st.session_state['client_bp'] = st.session_state['sod_collateral']
 if st.session_state['open_pos'].shape[0]:
