@@ -39,6 +39,23 @@ sod_collateral = pd.DataFrame({'CLIENT': ['Client 1', 'Client 2', 'Client 3'],
 sod_collateral = sod_collateral.set_index('CLIENT')
 st.session_state['sod_collateral'] = st.sidebar.data_editor(sod_collateral, disabled=('CLIENT'))
 
+st.session_state['calc_type'] = st.selectbox('TYPE OF CALCULATION', options=['ItD', 'EoD'], index=0)
+##### SoD OPEN POSITION #####
+st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>SoD OPEN POSITION</p>", unsafe_allow_html=True)
+prev_day_pos = pd.DataFrame({'SYMBOL': ['Future', 'Call', 'Put', 'Future', 'Call', 'Put', 'Future', 'Call', 'Put'],
+                              'CLIENT': ['Client 1', 'Client 1', 'Client 1', 'Client 2', 'Client 2', 'Client 2', 'Client 3', 'Client 3', 'Client 3'],
+                              'QUANTITY': [0., 0., 0., 0., 0., 0., 0., 0., 0.]},
+                            index= np.arange(9))
+
+with st.expander('Click to input SoD client portfolios'):
+    st.session_state['prev_day_pos'] = st.data_editor(prev_day_pos, 
+                                                      disabled=('SYMBOL', 'CLIENT'),
+                                                     use_container_width=True, hide_index=True)
+    st.text_area("",
+                 """ Clients' net position at SoD. To be mantained by B/O system and disseminated to F/O at SoD.
+                         - Quantity: Positive amount indicates long net position whereas negative indices short net position.
+                    """, disabled=True)
+
 ##### ORDER FORM #####
 with st.container():
   buff, col, buff2 = st.columns([1,2,1])
@@ -93,37 +110,42 @@ with st.container():
                                                                                   aggfunc='sum')
       st.session_state['day_trades'] = st.session_state['day_trades'].reset_index()
 
-st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>SoD OPEN POSITION</p>", unsafe_allow_html=True)
-prev_day_pos = pd.DataFrame({'SYMBOL': ['Future', 'Call', 'Put', 'Future', 'Call', 'Put', 'Future', 'Call', 'Put'],
-                              'CLIENT': ['Client 1', 'Client 1', 'Client 1', 'Client 2', 'Client 2', 'Client 2', 'Client 3', 'Client 3', 'Client 3'],
-                              'QUANTITY': [0., 0., 0., 0., 0., 0., 0., 0., 0.]},
-                            index= np.arange(9))
-prev_day_pos = prev_day_pos.set_index('SYMBOL').join(st.session_state['eod_prices'], how='left')
-prev_day_pos = prev_day_pos.join(st.session_state['theor_prices'], how='left')
-prev_day_pos = prev_day_pos.reset_index()
-prev_day_pos = prev_day_pos[['SYMBOL', 'CLIENT', 'QUANTITY', 'EOD PRICE T-1', 'THEORETICAL PRICE', 'CONTRACT SIZE']]
-with st.expander('Click to input SoD client portfolios'):
-    st.session_state['prev_day_pos'] = st.data_editor(prev_day_pos, 
-                                                      disabled=('SYMBOL', 'CLIENT', 'EOD PRICE T-1', 'THEORETICAL PRICE', 'CONTRACT SIZE'),
-                                                     use_container_width=True, hide_index=True)
-    st.text_area("",
-                 """ Clients' net position at SoD. To be mantained by B/O system and disseminated to F/O at SoD.
-                         - Quantity: Positive amount indicates long net position whereas negative indices short net position.
-                    """, disabled=True)
-
+##### CVM/RVM CALCULATION #####
+st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos'].set_index('SYMBOL').join(st.session_state['eod_prices'], how='left')
+st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos_calc'].join(st.session_state['theor_prices'], how='left')
+st.session_state['prev_day_pos_calc'] = prev_day_pos.reset_index()
+if st.session_state['calc_type'] == 'EoD':
+    st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos_calc'][['SYMBOL', 'CLIENT', 'QUANTITY', 'EOD PRICE T-1', 'EOD PRICE T', 'CONTRACT SIZE']]
+    
+elif st.session_state['calc_type'] == 'ItD':
+    st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos_calc'][['SYMBOL', 'CLIENT', 'QUANTITY', 'EOD PRICE T-1', 'THEORETICAL PRICE', 'CONTRACT SIZE']]
 
 st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos'][st.session_state['prev_day_pos']['QUANTITY'] !=0]
-st.session_state['prev_day_pos_calc'] =st.session_state['prev_day_pos_calc'].assign(**{'CVM': np.where(st.session_state['prev_day_pos_calc'].SYMBOL!='Future', 0.,
-                                                                                                       np.multiply(np.multiply(st.session_state['prev_day_pos_calc'].QUANTITY,
-                                                                                                                   st.session_state['prev_day_pos_calc']['CONTRACT SIZE']),
-                                                                                                       np.subtract(st.session_state['prev_day_pos_calc']['THEORETICAL PRICE'],st.session_state['prev_day_pos_calc']['EOD PRICE T-1']))),
-                                                                                       'PENDING PREMIUM': 0.})
+if st.session_state['calc_type'] == 'EoD':
+    st.session_state['prev_day_pos_calc'] =st.session_state['prev_day_pos_calc'].assign(**{'CVM': np.where(st.session_state['prev_day_pos_calc'].SYMBOL!='Future', 0.,
+                                                                                                           np.multiply(np.multiply(st.session_state['prev_day_pos_calc'].QUANTITY,
+                                                                                                                       st.session_state['prev_day_pos_calc']['CONTRACT SIZE']),
+                                                                                                           np.subtract(st.session_state['prev_day_pos_calc']['THEORETICAL PRICE'],st.session_state['prev_day_pos_calc']['EOD PRICE T-1']))),
+                                                                                           'PENDING PREMIUM': 0.})
+elif st.session_state['calc_type'] == 'ItD':
+    st.session_state['prev_day_pos_calc'] =st.session_state['prev_day_pos_calc'].assign(**{'RVM': np.where(st.session_state['prev_day_pos_calc'].SYMBOL!='Future', 0.,
+                                                                                                           np.multiply(np.multiply(st.session_state['prev_day_pos_calc'].QUANTITY,
+                                                                                                                                   st.session_state['prev_day_pos_calc']['CONTRACT SIZE']),
+                                                                                                                       np.subtract(st.session_state['prev_day_pos_calc']['EOD PRICE T'],st.session_state['prev_day_pos_calc']['EOD PRICE T-1']))),
+                                                                                           'PENDING PREMIUM': 0.})
 if st.session_state['prev_day_pos_calc'].shape[0]:
-    st.markdown("<p style='text-align: center;'font-size:18px;'>T-1 EOD OPEN POSITION - CVM CALCULATION </p>", unsafe_allow_html=True) 
-    st.dataframe(st.session_state['prev_day_pos_calc'], use_container_width=True, hide_index=True)
-    st.text_area("Contingent Variation Margin (CVM) will be computed ItD for futures positions carried forward from previous day as:" 
-                    "Quantity * Contract Size * (Theor Price - T-1 EoD Price)"
-                    "As premiums are settled upfront at the day in which they are trading (EoD), no pending premiums will be left to be settled on the following sessions")
+    if st.session_state['calc_type'] == 'EoD':
+        st.markdown("<p style='text-align: center;'font-size:18px;'>SoD OPEN POSITION - RVM CALCULATION </p>", unsafe_allow_html=True)
+        st.dataframe(st.session_state['prev_day_pos_calc'], use_container_width=True, hide_index=True)
+        st.text_area("Realized Variation Margin (RVM) will be computed EoD for futures positions carried forward from previous day as:" 
+                        "Quantity * Contract Size * (T EoD Price - T-1 EoD Price)"
+                        "As premiums are settled upfront at the day in which they are traded, no pending premiums will be left to be settled on the following sessions")
+    elif st.session_state['calc_type'] == 'ItD':        
+        st.markdown("<p style='text-align: center;'font-size:18px;'>SoD OPEN POSITION - CVM CALCULATION </p>", unsafe_allow_html=True) 
+        st.dataframe(st.session_state['prev_day_pos_calc'], use_container_width=True, hide_index=True)
+        st.text_area("Contingent Variation Margin (CVM) will be computed ItD for futures positions carried forward from previous day as:" 
+                        "Quantity * Contract Size * (Theor Price - T-1 EoD Price)"
+                        "As premiums are settled upfront at the day in which they are traded, no pending premiums will be left to be settled on the following sessions")
                  
                  
 if 'day_trades' in st.session_state.keys():
