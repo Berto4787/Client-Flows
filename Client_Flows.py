@@ -92,11 +92,18 @@ with st.container():
       else:
         st.session_state['orders'] = pd.concat([st.session_state['orders'], new_pos], axis=0, ignore_index= True)
     elif st.session_state['new_type'] == 'Trade':
-      new_pos = new_pos.assign(**{'THEORETICAL PRICE': st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['THEORETICAL PRICE']})
+        if st.session_state['calc_type'] == 'EoD':
+            new_pos = new_pos.assign(**{'EOD PRICE T': st.session_state['eod_prices'].loc[st.session_state['new_instrument']]['EOD PRICE T']})
+            new_pos = new_pos.assign(**{'RVM': np.where(st.session_state['new_instrument']!='Future', 0.,
+                                                        np.where(st.session_state['new_side'] == 'Buy', 1, -1) * st.session_state['new_quantity'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['CONTRACT SIZE'] * (st.session_state['eod_prices'].loc[st.session_state['new_instrument']]['EOD PRICE T']-st.session_state['new_price']))})
+
+        elif st.session_state['calc_type'] == 'ItD':
+            new_pos = new_pos.assign(**{'THEORETICAL PRICE': st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['THEORETICAL PRICE']})
+            new_pos = new_pos.assign(**{'CVM': np.where(st.session_state['new_instrument']!='Future', 0.,
+                                                        np.where(st.session_state['new_side'] == 'Buy', 1, -1) * st.session_state['new_quantity'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['CONTRACT SIZE'] * (st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['THEORETICAL PRICE']-st.session_state['new_price']))})
+
       new_pos = new_pos.assign(**{'PENDING PREMIUM': np.where(st.session_state['new_instrument']=='Future', 0.,
                                                               np.where(st.session_state['new_side'] == 'Buy', -1, 1) * st.session_state['new_quantity'] * st.session_state['new_price'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['CONTRACT SIZE'])})
-      new_pos = new_pos.assign(**{'CVM': np.where(st.session_state['new_instrument']!='Future', 0.,
-                                                  np.where(st.session_state['new_side'] == 'Buy', 1, -1) * st.session_state['new_quantity'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['CONTRACT SIZE'] * (st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['THEORETICAL PRICE']-st.session_state['new_price']))})
 
       if 'trades' not in st.session_state.keys():                               
         st.session_state['trades'] = new_pos
@@ -105,9 +112,14 @@ with st.container():
       st.session_state['day_trades'] = st.session_state['trades'].assign(**{'QUANTITY': np.where(st.session_state['trades']['SIDE']=='Buy', 
                                                                                                  st.session_state['trades']['QUANTITY'],
                                                                                                  np.multiply( st.session_state['trades']['QUANTITY'], -1))})
-      st.session_state['day_trades'] = st.session_state['day_trades'].pivot_table(index=['CLIENT', 'SYMBOL'], 
-                                                                                  values=['QUANTITY', 'PENDING PREMIUM', 'CVM'], 
-                                                                                  aggfunc='sum')
+      if st.session_state['calc_type'] == 'EoD':
+          st.session_state['day_trades'] = st.session_state['day_trades'].pivot_table(index=['CLIENT', 'SYMBOL'], 
+                                                                                      values=['QUANTITY', 'PENDING PREMIUM', 'RVM'], 
+                                                                                      aggfunc='sum') 
+      elif st.session_state['calc_type'] == 'ItD':
+          st.session_state['day_trades'] = st.session_state['day_trades'].pivot_table(index=['CLIENT', 'SYMBOL'], 
+                                                                                      values=['QUANTITY', 'PENDING PREMIUM', 'CVM'], 
+                                                                                      aggfunc='sum')
       st.session_state['day_trades'] = st.session_state['day_trades'].reset_index()
 
 ##### CVM/RVM CALCULATION #####
@@ -124,14 +136,14 @@ elif st.session_state['calc_type'] == 'ItD':
 st.session_state['prev_day_pos_calc'] = st.session_state['prev_day_pos_calc'][st.session_state['prev_day_pos_calc']['QUANTITY'] !=0]
 if st.session_state['calc_type'] == 'EoD':
     st.dataframe(st.session_state['prev_day_pos_calc'])
-    st.session_state['prev_day_pos_calc'] =st.session_state['prev_day_pos_calc'].assign(**{'CVM': np.where(st.session_state['prev_day_pos_calc'].SYMBOL!='Future', 0.,
+    st.session_state['prev_day_pos_calc'] =st.session_state['prev_day_pos_calc'].assign(**{'RVM': np.where(st.session_state['prev_day_pos_calc'].SYMBOL!='Future', 0.,
                                                                                                            np.multiply(np.multiply(st.session_state['prev_day_pos_calc'].QUANTITY,
                                                                                                                        st.session_state['prev_day_pos_calc']['CONTRACT SIZE']),
                                                                                                            np.subtract(st.session_state['prev_day_pos_calc']['EOD PRICE T'],st.session_state['prev_day_pos_calc']['EOD PRICE T-1']))),
                                                                                            'PENDING PREMIUM': 0.})
 elif st.session_state['calc_type'] == 'ItD':
     st.dataframe(st.session_state['prev_day_pos_calc'])
-    st.session_state['prev_day_pos_calc'] =st.session_state['prev_day_pos_calc'].assign(**{'RVM': np.where(st.session_state['prev_day_pos_calc'].SYMBOL!='Future', 0.,
+    st.session_state['prev_day_pos_calc'] =st.session_state['prev_day_pos_calc'].assign(**{'CVM': np.where(st.session_state['prev_day_pos_calc'].SYMBOL!='Future', 0.,
                                                                                                            np.multiply(np.multiply(st.session_state['prev_day_pos_calc'].QUANTITY,
                                                                                                                                    st.session_state['prev_day_pos_calc']['CONTRACT SIZE']),
                                                                                                                        np.subtract(st.session_state['prev_day_pos_calc']['THEORETICAL PRICE'],st.session_state['prev_day_pos_calc']['EOD PRICE T-1']))),
@@ -152,22 +164,35 @@ if st.session_state['prev_day_pos_calc'].shape[0]:
                  
                  
 if 'day_trades' in st.session_state.keys():
-    prev_day_subset = st.session_state['prev_day_pos_calc'][['CLIENT', 'SYMBOL', 'CVM', 'PENDING PREMIUM', 'QUANTITY']]
-    st.session_state['open_pos'] = pd.concat([prev_day_subset, st.session_state['day_trades']], ignore_index=True)
-    st.session_state['open_pos'] = st.session_state['open_pos'].pivot_table(index=['CLIENT', 'SYMBOL'], 
-                                                                                  values=['QUANTITY', 'PENDING PREMIUM', 'CVM'], 
-                                                                                  aggfunc='sum')
+    if st.session_state['calc_type'] == 'EoD':
+        prev_day_subset = st.session_state['prev_day_pos_calc'][['CLIENT', 'SYMBOL', 'RVM', 'PENDING PREMIUM', 'QUANTITY']]
+        st.session_state['open_pos'] = pd.concat([prev_day_subset, st.session_state['day_trades']], ignore_index=True)
+        st.session_state['open_pos'] = st.session_state['open_pos'].pivot_table(index=['CLIENT', 'SYMBOL'], 
+                                                                                      values=['QUANTITY', 'PENDING PREMIUM', 'RVM'], 
+                                                                                      aggfunc='sum')
+    elif st.session_state['calc_type'] == 'ItD':
+        prev_day_subset = st.session_state['prev_day_pos_calc'][['CLIENT', 'SYMBOL', 'CVM', 'PENDING PREMIUM', 'QUANTITY']]
+        st.session_state['open_pos'] = pd.concat([prev_day_subset, st.session_state['day_trades']], ignore_index=True)
+        st.session_state['open_pos'] = st.session_state['open_pos'].pivot_table(index=['CLIENT', 'SYMBOL'], 
+                                                                                      values=['QUANTITY', 'PENDING PREMIUM', 'CVM'], 
+                                                                                      aggfunc='sum')
     st.session_state['open_pos'] =st.session_state['open_pos'].reset_index()
 else:
-    st.session_state['open_pos'] = st.session_state['prev_day_pos_calc'][['CLIENT', 'SYMBOL', 'CVM', 'PENDING PREMIUM', 'QUANTITY']]
+    if st.session_state['calc_type'] == 'EoD':
+        st.session_state['open_pos'] = st.session_state['prev_day_pos_calc'][['CLIENT', 'SYMBOL', 'RVM', 'PENDING PREMIUM', 'QUANTITY']]
+    elif st.session_state['calc_type'] == 'ItD':
+        st.session_state['open_pos'] = st.session_state['prev_day_pos_calc'][['CLIENT', 'SYMBOL', 'CVM', 'PENDING PREMIUM', 'QUANTITY']]
 if 'open_pos' in st.session_state.keys():
     st.session_state['open_pos'] = st.session_state['open_pos'].set_index('SYMBOL')
     st.session_state['open_pos'] = st.session_state['open_pos'].join(st.session_state['fit_margins'][['MM']], how='left')
     st.session_state['open_pos'] = st.session_state['open_pos'].reset_index()
     st.session_state['open_pos'] = st.session_state['open_pos'].assign(**{'MAINTENANCE MARGIN': np.abs(np.where((st.session_state['open_pos']['SYMBOL']!='Future') & (st.session_state['open_pos']['QUANTITY']>0), 0.,
                                                                                                                  np.multiply(st.session_state['open_pos']['QUANTITY'], st.session_state['open_pos']['MM'])))})
-    st.session_state['open_pos'] = st.session_state['open_pos'].assign(**{'TOTAL REQUIREMENT':np.abs(np.subtract(np.add(np.minimum(st.session_state['open_pos'].CVM, 0), st.session_state['open_pos']['PENDING PREMIUM']),
-                                                                                                                 st.session_state['open_pos']['MAINTENANCE MARGIN']))})
+    if st.session_state['calc_type'] == 'EoD':
+        st.session_state['open_pos'] = st.session_state['open_pos'].assign(**{'TOTAL REQUIREMENT': st.session_state['open_pos']['MAINTENANCE MARGIN']})
+    elif st.session_state['calc_type'] == 'ItD':   
+        st.session_state['open_pos'] = st.session_state['open_pos'].assign(**{'TOTAL REQUIREMENT':np.abs(np.subtract(np.add(np.minimum(st.session_state['open_pos'].CVM, 0), st.session_state['open_pos']['PENDING PREMIUM']),
+                                                                                                                     st.session_state['open_pos']['MAINTENANCE MARGIN']))})
         
     st.session_state['open_pos'] = st.session_state['open_pos'].drop(columns=['MM'])
 
@@ -179,15 +204,26 @@ if 'trades' in st.session_state.keys():
   st.dataframe(st.session_state['trades'], use_container_width=True, hide_index=True)
 if st.session_state['open_pos'].shape[0]:
   st.markdown("<p style='text-align: center;'font-size:18px;'>CLIENTS OPEN POSITION</p>", unsafe_allow_html=True)
-  st.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'CVM', 'PENDING PREMIUM', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
-  st.markdown("<p style='text-align: center;'font-size:18px;'>CM - CCP OPEN POSITION</p>", unsafe_allow_html=True)
-  st.session_state['open_pos_ccp'] = st.session_state['open_pos'].pivot_table(index=['SYMBOL'],
-                                                                              values= ['QUANTITY', 'CVM', 'PENDING PREMIUM'],
-                                                                              aggfunc ='sum')
-  st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].reset_index()
-  st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].assign(**{'CLEARING ACCOUNT': 'OSA'})
-  st.dataframe(st.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'CVM', 'PENDING PREMIUM']], 
-               use_container_width=True, hide_index=True)
+  if st.session_state['calc_type'] == 'EoD':
+      st.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'RVM', 'PENDING PREMIUM', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
+      st.markdown("<p style='text-align: center;'font-size:18px;'>CM - CCP OPEN POSITION</p>", unsafe_allow_html=True)
+      st.session_state['open_pos_ccp'] = st.session_state['open_pos'].pivot_table(index=['SYMBOL'],
+                                                                                  values= ['QUANTITY', 'RVM', 'PENDING PREMIUM'],
+                                                                                  aggfunc ='sum')
+      st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].reset_index()
+      st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].assign(**{'CLEARING ACCOUNT': 'OSA'})
+      st.dataframe(st.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'RVM', 'PENDING PREMIUM']], 
+                   use_container_width=True, hide_index=True)
+  elif st.session_state['calc_type'] == 'ItD':
+      st.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'CVM', 'PENDING PREMIUM', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
+      st.markdown("<p style='text-align: center;'font-size:18px;'>CM - CCP OPEN POSITION</p>", unsafe_allow_html=True)
+      st.session_state['open_pos_ccp'] = st.session_state['open_pos'].pivot_table(index=['SYMBOL'],
+                                                                                  values= ['QUANTITY', 'CVM', 'PENDING PREMIUM'],
+                                                                                  aggfunc ='sum')
+      st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].reset_index()
+      st.session_state['open_pos_ccp'] = st.session_state['open_pos_ccp'].assign(**{'CLEARING ACCOUNT': 'OSA'})
+      st.dataframe(st.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'CVM', 'PENDING PREMIUM']], 
+                   use_container_width=True, hide_index=True)
 
 st.session_state['client_bp'] = st.session_state['sod_collateral']
 if st.session_state['open_pos'].shape[0]:
