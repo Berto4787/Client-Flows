@@ -279,17 +279,17 @@ elif st.session_state['calc_type'] == 'EoD':
         with st.container():
             cli, ccp = st.columns([1,1])
             if st.session_state['open_pos'].shape[0]:
-                client_settlement = st.session_state['open_pos'].pivot_table(index=['CLIENT'], 
-                                                                             values=['RVM', 'PENDING PREMIUM'],
-                                                                             aggfunc='sum')
+                st.session_state['client_settlement'] = st.session_state['open_pos'].pivot_table(index=['CLIENT'],
+                                                                                                 values=['RVM', 'PENDING PREMIUM'],
+                                                                                                 aggfunc='sum')
                 st.session_state['client_settlement'] = st.session_state['client_settlement'].assign(**{'TOTAL SETTLEMENT': np.add(st.session_state['client_settlement'].RVM,
                                                                                                                                    st.session_state['client_settlement']['PENDING PREMIUM'])})
                 
                 cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT SETTLEMENT</p>", unsafe_allow_html=True)
                 cli.dataframe(st.session_state['client_settlement'],use_container_width=True)
-                ccp_settlement = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'],
-                                                                              values=['RVM', 'PENDING PREMIUM'],
-                                                                              aggfunc='sum')
+                st.session_state['ccp_settlement'] = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'],
+                                                                                                  values=['RVM', 'PENDING PREMIUM'],
+                                                                                                  aggfunc='sum')
                 st.session_state['ccp_settlement'] = st.session_state['ccp_settlement'].assign(**{'TOTAL SETTLEMENT': np.add(st.session_state['ccp_settlement'].RVM,
                                                                                                                              st.session_state['ccp_settlement']['PENDING PREMIUM'])})
                 
