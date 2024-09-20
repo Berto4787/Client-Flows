@@ -279,7 +279,7 @@ if st.session_state['calc_type'] == 'ItD':
 elif st.session_state['calc_type'] == 'EoD':
     st.divider()
     st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP SETTLEMENTS</p>", unsafe_allow_html=True)
-    if st.session_state['open_pos_ccp'].shape[0]:
+    if 'open_pos_ccp' not in st.session_state.keys():
         pass
     else:
         with st.expander('Click to see EoD settlement'):
@@ -306,7 +306,7 @@ elif st.session_state['calc_type'] == 'EoD':
 ##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - COLLATERAL #####
 st.divider()
 st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
-if st.session_state['open_pos_ccp'].shape[0]:
+if 'open_pos_ccp' not in st.session_state.keys():
     pass
 else:
     with st.expander('Click to see results'):
