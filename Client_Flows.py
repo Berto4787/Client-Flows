@@ -229,6 +229,7 @@ if 'orders' in st.session_state.keys():
     with st.expander('Click to display outstanding orders'):
         st.dataframe(st.session_state['orders'], use_container_width=True, hide_index=True)
 ##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - BREAK DOWN #####
+st.divider()
 st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP OPEN POSITION - BREAK DOWN</p>", unsafe_allow_html=True)
 with st.expander('Click to see break down'):
     with st.container():
@@ -276,6 +277,7 @@ with st.expander('Click to see break down'):
 if st.session_state['calc_type'] == 'ItD':
     pass
 elif st.session_state['calc_type'] == 'EoD':
+    st.divider()
     st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP SETTLEMENTS</p>", unsafe_allow_html=True)
     with st.expander('Click to see EoD settlement'):
         with st.container():
@@ -299,6 +301,7 @@ elif st.session_state['calc_type'] == 'EoD':
                 ccp.dataframe(st.session_state['ccp_settlement'],use_container_width=True)
 
 ##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - COLLATERAL #####
+st.divider()
 st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
 with st.expander('Click to see results'):
     with st.container():
