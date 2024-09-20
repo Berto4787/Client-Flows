@@ -307,11 +307,11 @@ elif st.session_state['calc_type'] == 'EoD':
                     ccp.dataframe(st.session_state['ccp_settlement'],use_container_width=True)
 
 ##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - COLLATERAL #####
-st.divider()
-st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
 if 'open_pos_ccp' not in st.session_state.keys():
     pass
 else:
+    st.divider()
+    st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
     with st.expander('Click to see results'):
         with st.container():
             cli, ccp = st.columns([1,1])
