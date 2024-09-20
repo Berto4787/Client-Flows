@@ -238,7 +238,7 @@ with st.expander('Click to see break down'):
             if st.session_state['calc_type'] == 'EoD':
                 cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT OPEN POSITION</p>", unsafe_allow_html=True)
                 cli.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'RVM', 'PENDING PREMIUM', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
-                ccp.markdown("<p style='text-align: center;'font-size:18px;'>CM - CCP OPEN POSITION</p>", unsafe_allow_html=True)
+                ccp.markdown("<p style='text-align: center;'font-size:18px;'>BROKER/CM - CCP OPEN POSITION</p>", unsafe_allow_html=True)
                 st.session_state['open_pos_ccp'] = st.session_state['open_pos'].pivot_table(index=['SYMBOL'],
                                                                                             values= ['QUANTITY', 'RVM', 'PENDING PREMIUM'],
                                                                                             aggfunc ='sum')
@@ -257,7 +257,7 @@ with st.expander('Click to see break down'):
             elif st.session_state['calc_type'] == 'ItD':
                 cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT OPEN POSITION</p>", unsafe_allow_html=True)
                 cli.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'CVM', 'PENDING PREMIUM', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
-                ccp.markdown("<p style='text-align: center;'font-size:18px;'>CM - CCP OPEN POSITION</p>", unsafe_allow_html=True)
+                ccp.markdown("<p style='text-align: center;'font-size:18px;'>BROKER/CM - CCP OPEN POSITION</p>", unsafe_allow_html=True)
                 st.session_state['open_pos_ccp'] = st.session_state['open_pos'].pivot_table(index=['SYMBOL'],
                                                                                             values= ['QUANTITY', 'CVM', 'PENDING PREMIUM'],
                                                                                             aggfunc ='sum')
@@ -363,5 +363,5 @@ with st.expander('Click to see results'):
                                                                                                                                             st.session_state['ccp_col_balance']['COLLATERAL']), 0))})
         st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'AVAILABLE COLLATERAL': np.maximum(np.add(st.session_state['ccp_col_balance']['TOTAL LIABILITIES'],
                                                                                                                                       st.session_state['ccp_col_balance']['COLLATERAL']), 0)})    
-        ccp.markdown("<p style='text-align: center;'font-size:18px;'>CM - CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
+        ccp.markdown("<p style='text-align: center;'font-size:18px;'>BROKER/CM - CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
         ccp.dataframe(st.session_state['ccp_col_balance'],use_container_width=True)
