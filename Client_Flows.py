@@ -165,13 +165,13 @@ with st.expander('Click to see break down'):
     if st.session_state['prev_day_pos_calc'].shape[0]:
         if st.session_state['calc_type'] == 'EoD':
             st.markdown("<p style='text-align: center;'font-size:18px;'>SoD OPEN POSITION - RVM CALCULATION </p>", unsafe_allow_html=True)
-            st.dataframe(st.session_state['prev_day_pos_calc'], use_container_width=True, hide_index=True)
+            st.dataframe(st.session_state['prev_day_pos_calc'].drop(columns=['PENDING PREMIUM']), use_container_width=True, hide_index=True)
             st.text_area("",
                          """ Realized Variation Margin (RVM) should be computed EoD by B/O system to MtM futures positons carried forward from previous days to EoD official settlement price.
                          RVM = Quantity * Contract Size * (EoD Price T - EoD Price T-1)""", disabled=True)
         elif st.session_state['calc_type'] == 'ItD':        
             st.markdown("<p style='text-align: center;'font-size:18px;'>SoD OPEN POSITION - CVM CALCULATION </p>", unsafe_allow_html=True) 
-            st.dataframe(st.session_state['prev_day_pos_calc'], use_container_width=True, hide_index=True)
+            st.dataframe(st.session_state['prev_day_pos_calc'].drop(columns=['PENDING PREMIUM']), use_container_width=True, hide_index=True)
             st.text_area("",""" Contingen Variation Margin (CVM) should be computed ItD by F/O system for futures positons carried forward from previous days as a component of Buying Power computation.
                          CVM = Quantity * Contract Size * (ItD Theoretical Price - EoD Price T-1)""", disabled=True)
 
