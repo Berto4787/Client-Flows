@@ -332,10 +332,10 @@ with st.expander('Click to see results'):
             cli.dataframe(st.session_state['client_bp'],use_container_width=True)
         elif st.session_state['calc_type'] == 'EoD':
             st.session_state['client_bp'] = st.session_state['client_bp'].join(st.session_state['client_settlement'][['TOTAL SETTLEMENT']], how='left')
-            st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'NEXT DAY BP/AVAILABLE COLLATERAL': np.maximum(np.subtract(np.subtract(st.session_state['client_bp'].COLLATERAL,
-                                                                                                                                                           np.add(st.session_state['client_bp']['OPEN POSITION REQ'],
-                                                                                                                                                                  st.session_state['client_bp']['OUTSTANDING ORDERS REQ'])), 
-                                                                                                                                               st.session_state['client_bp']['TOTAL SETTLEMENT']), 
+            st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'NEXT DAY BP/AVAILABLE COLLATERAL': np.maximum(np.add(np.subtract(st.session_state['client_bp'].COLLATERAL,
+                                                                                                                                                      np.add(st.session_state['client_bp']['OPEN POSITION REQ'],
+                                                                                                                                                             st.session_state['client_bp']['OUTSTANDING ORDERS REQ'])), 
+                                                                                                                                          st.session_state['client_bp']['TOTAL SETTLEMENT']),
                                                                                                                                    0)})
             cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT COLLATERAL BALANCE/NEXT DAY BUYING POWER</p>", unsafe_allow_html=True)
             cli.dataframe(st.session_state['client_bp'],use_container_width=True)   
