@@ -358,7 +358,7 @@ with st.expander('Click to see results'):
             st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].join(aggregated_req, how='left')
             st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'TOTAL LIABILITIES': np.subtract( st.session_state['ccp_col_balance']['NLV'],
                                                                                                                                  st.session_state['ccp_col_balance']['IM'])})
-        Required collateral
+        # Required collateral
         st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'REQUIRED COLLATERAL': np.abs(np.minimum(np.add(st.session_state['ccp_col_balance']['TOTAL LIABILITIES'],
                                                                                                                                             st.session_state['ccp_col_balance']['COLLATERAL']), 0))})
         st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'AVAILABLE COLLATERAL': np.maximum(np.add(st.session_state['ccp_col_balance']['TOTAL LIABILITIES'],
