@@ -15,7 +15,7 @@ st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>ITD THEORETI
 theor_prices = pd.DataFrame({'SYMBOL':['Future', 'Call', 'Put'], 'THEORETICAL PRICE':[9500., 5.3, 3.2],
                             'CONTRACT SIZE':[1000, 5, 5]})
 theor_prices = theor_prices.set_index('SYMBOL')
-st.session_state['theor_prices'] = st.sidebar.data_editor(theor_prices, disabled=('SYMBOL', 'CONTRACT SIZE'))
+st.session_state['theor_prices'] = st.sidebar.data_editor(theor_prices, disabled=('SYMBOL', 'CONTRACT SIZE'), use_container_width=True)
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>EOD PRICES- MITCH OR QCCP REPORTS</p>", unsafe_allow_html=True)
 eod_prices = pd.DataFrame({'SYMBOL':['Future', 'Call', 'Put'], 'EOD PRICE T':[9650., 5.5, 3.1],
                           'EOD PRICE T-1':[9300., 4.1, 2.5]})
@@ -31,20 +31,20 @@ fit_margins = fit_margins.assign(**{'MM':np.multiply(fit_margins.MM, 1 + st.sess
 fit_margins = fit_margins.assign(**{'MM':np.where(fit_margins.index=='Future', fit_margins.MM, np.add(fit_margins.MM, st.session_state['theor_prices']['THEORETICAL PRICE'])), 
                                     'IM':np.where(fit_margins.index=='Future', fit_margins.IM, np.add(fit_margins.IM, st.session_state['theor_prices']['THEORETICAL PRICE']))})
 st.session_state['fit_margins'] = fit_margins
-st.sidebar.dataframe(st.session_state['fit_margins'])
+st.sidebar.dataframe(st.session_state['fit_margins'], use_container_width=True)
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>CLIENT  COLLATERAL - B/O & F/O</p>", unsafe_allow_html=True)
 sod_collateral = pd.DataFrame({'CLIENT': ['Client 1', 'Client 2', 'Client 3'],
                               'COLLATERAL': [2000000, 2000000, 2000000]},
                             index= np.arange(3))
 sod_collateral = sod_collateral.set_index('CLIENT')
-st.session_state['sod_collateral'] = st.sidebar.data_editor(sod_collateral, disabled=('CLIENT'))
+st.session_state['sod_collateral'] = st.sidebar.data_editor(sod_collateral, disabled=('CLIENT'), use_container_width=True)
 
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>CM COLLATERAL AT CCP</p>", unsafe_allow_html=True)
 sod_collateral_ccp = pd.DataFrame({'COLLATERAL ACCOUNT': ['OSA'],
                                    'COLLATERAL': [2000000]},
                                   index= np.arange(1))
 sod_collateral_ccp = sod_collateral_ccp.set_index('COLLATERAL ACCOUNT')
-st.session_state['sod_collateral_ccp'] = st.sidebar.data_editor(sod_collateral_ccp, disabled=('COLLATERAL ACCOUNT'))
+st.session_state['sod_collateral_ccp'] = st.sidebar.data_editor(sod_collateral_ccp, disabled=('COLLATERAL ACCOUNT'), use_container_width=True)
 
 
 st.session_state['calc_type'] = st.selectbox('TYPE OF CALCULATION', options=['ItD', 'EoD'], index=0)
