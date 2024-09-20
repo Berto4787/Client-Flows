@@ -270,9 +270,35 @@ with st.expander('Click to see break down'):
                 ccp.dataframe(st.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'THEORETICAL PRICE', 'CONTRACT SIZE', 'CVM', 'NLV', 'PENDING PREMIUM']],
                               use_container_width=True, hide_index=True)
 
+##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - SETTLEMENT #####
+if st.session_state['calc_type'] == 'ItD':
+    pass
+elif st.session_state['calc_type'] == 'EoD':
+    st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP SETTLEMENTS</p>", unsafe_allow_html=True)
+    with st.expander('Click to see EoD settlement'):
+        with st.container():
+            cli, ccp = st.columns([1,1])
+            if st.session_state['open_pos'].shape[0]:
+                client_settlement = st.session_state['open_pos'].pivot_table(index=['CLIENT'], 
+                                                                             values=['RVM', 'PENDING PREMIUM'],
+                                                                             aggfunc='sum')
+                st.session_state['client_settlement'] = st.session_state['client_settlement'].assign(**{'TOTAL SETTLEMENT': np.add(st.session_state['client_settlement'].RVM,
+                                                                                                                                   st.session_state['client_settlement']['PENDING PREMIUM'])})
+                
+                cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT SETTLEMENT</p>", unsafe_allow_html=True)
+                cli.dataframe(st.session_state['client_settlement'],use_container_width=True)
+                ccp_settlement = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'],
+                                                                              values=['RVM', 'PENDING PREMIUM'],
+                                                                              aggfunc='sum')
+                st.session_state['ccp_settlement'] = st.session_state['ccp_settlement'].assign(**{'TOTAL SETTLEMENT': np.add(st.session_state['ccp_settlement'].RVM,
+                                                                                                                             st.session_state['ccp_settlement']['PENDING PREMIUM'])})
+                
+                ccp.markdown("<p style='text-align: center;'font-size:18px;'>BROKER/CM - CCP SETTLEMENT</p>", unsafe_allow_html=True)
+                ccp.dataframe(st.session_state['ccp_settlement'],use_container_width=True)
+
 ##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - COLLATERAL #####
 st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
-with st.expander('Click to see break down'):
+with st.expander('Click to see results'):
     with st.container():
         cli, ccp = st.columns([1,1])
         # Client - Broker
@@ -321,5 +347,9 @@ with st.expander('Click to see break down'):
             st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'TOTAL LIABILITIES': np.subtract( st.session_state['ccp_col_balance']['NLV'],
                                                                                                                                   st.session_state['ccp_col_balance']['IM'])})
         # Include required collateral
+        st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'REQUIRED COLLATERAL': np.abs(np.minimum(np.add(st.session_state['ccp_col_balance']['TOTAL LIABILITIES'],
+                                                                                                                                            st.session_state['ccp_col_balance']['COLLATERAL']), 0))})
+        st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'AVAILABLE COLLATERAL': np.maximum(np.add(st.session_state['ccp_col_balance']['TOTAL LIABILITIES'],
+                                                                                                                                      st.session_state['ccp_col_balance']['COLLATERAL']), 0)})    
         ccp.markdown("<p style='text-align: center;'font-size:18px;'>CM - CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
         ccp.dataframe(st.session_state['ccp_col_balance'],use_container_width=True)
