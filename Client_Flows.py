@@ -323,7 +323,7 @@ with st.expander('Click to see results'):
             st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'OUTSTANDING ORDERS REQ': 0.})
         
         st.session_state['client_bp'] = st.session_state['client_bp'].fillna(0)
-        # EOD taking into account EoD settlement & Available Collateral rather than Buying Power
+ 
         if st.session_state['calc_type'] == 'ItD':
             st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'BUYING POWER': np.maximum(np.subtract(st.session_state['client_bp'].COLLATERAL, 
                                                                                                                            np.add(st.session_state['client_bp']['OPEN POSITION REQ'],
@@ -331,7 +331,14 @@ with st.expander('Click to see results'):
             cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT COLLATERAL BALANCE</p>", unsafe_allow_html=True)
             cli.dataframe(st.session_state['client_bp'],use_container_width=True)
         elif st.session_state['calc_type'] == 'EoD':
-            pass
+            st.session_state['client_bp'] = st.session_state['client_bp'].join(st.session_state['client_settlement'][['TOTAL SETTLEMENT']], how='left')
+            st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'NEXT DAY BP/AVAILABLE COLLATERAL': np.maximum(np.subtract(np.subtract(st.session_state['client_bp'].COLLATERAL,
+                                                                                                                                                           np.add(st.session_state['client_bp']['OPEN POSITION REQ'],
+                                                                                                                                                                  st.session_state['client_bp']['OUTSTANDING ORDERS REQ'])), 
+                                                                                                                                               st.session_state['client_bp']['TOTAL SETTLEMENT']), 
+                                                                                                                                   0)})
+            cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT COLLATERAL BALANCE/NEXT DAY BUYING POWER</p>", unsafe_allow_html=True)
+            cli.dataframe(st.session_state['client_bp'],use_container_width=True)   
         # Broker - CCP:
         st.session_state['ccp_col_balance'] = st.session_state['sod_collateral_ccp']
         st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'IM': st.session_state['open_pos']['MAINTENANCE MARGIN'].sum(axis=0) * 0.2})
