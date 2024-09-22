@@ -240,7 +240,7 @@ if 'orders' in st.session_state.keys():
                         - Initial Margin: Applicable to futures and short option positions -> IM = Quantity * Instrument's IM.
                         - Pending Premium: Negative (margin requirement) for long options and positive (credit) for short options -> Pending Premium = Quantity * Contract Size * Premium (equal to order price or reference price for market orders).
                         - Current Buying Power: Client's buying power when order was submitted.
-                        - Total Requirement: abs(Pending Premium - Initial Margin, 0)
+                        - Total Requirement: abs(min(Pending Premium - Initial Margin, 0))
                         - Status: Accepted if Current Buying Power >= Total Requirement. Otherwise Rejected (Rejected orders won't have an impact on buying power calculation).
                     """, disabled=True, height=1)
 ##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - BREAK DOWN #####
