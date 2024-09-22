@@ -6,6 +6,8 @@ st.session_state['ID'] = 0
 st.set_page_config(
     layout="wide",
 )
+st.session_state['calc_type'] = st.selectbox('TYPE OF CALCULATION', options=['ItD', 'EoD'], index=0)
+
 ##### MARGIN PARAMETERS #####
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>IM_SINGLE_POSITION - QCCP</p>", unsafe_allow_html=True)
 qccp_margins = pd.DataFrame({'SYMBOL':['Future', 'Call', 'Put'], 'LONG':[1000, 180, 130], 'SHORT':[950, 190, 145]})
@@ -22,14 +24,22 @@ eod_prices = pd.DataFrame({'SYMBOL':['Future', 'Call', 'Put'], 'EOD PRICE T':[96
 eod_prices = eod_prices.set_index('SYMBOL')
 st.session_state['eod_prices'] = st.sidebar.data_editor(eod_prices, disabled=('SYMBOL'))
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>BROKER PARAMETERS - B/O</p>", unsafe_allow_html=True)
-st.session_state['mm_buffer'] = st.sidebar.number_input(label='MM Buffer', min_value=0.,max_value=1., value=0.25, step=0.01, format='%.2f', help='MM = max(LONG, SHORT) * (1+ MM Buffer). Note that theoretical price will be added for options')
-st.session_state['im_buffer'] = st.sidebar.number_input(label='IM Buffer', min_value=st.session_state['mm_buffer'],max_value=1.,value=st.session_state['mm_buffer'], step=0.01, format='%.2f', help='IM = max(LONG, SHORT) * (1+ IM Buffer). Note that theoretical price will be added for options')
+if st.session_state['calc_type'] == 'ItD':
+    st.session_state['mm_buffer'] = st.sidebar.number_input(label='MM Buffer', min_value=0.,max_value=1., value=0.25, step=0.01, format='%.2f', help='MM = max(LONG, SHORT) * (1+ MM Buffer). Note that theoretical price will be added for options')
+    st.session_state['im_buffer'] = st.sidebar.number_input(label='IM Buffer', min_value=st.session_state['mm_buffer'],max_value=1.,value=st.session_state['mm_buffer'], step=0.01, format='%.2f', help='IM = max(LONG, SHORT) * (1+ IM Buffer). Note that theoretical price will be added for options')
+elif st.session_state['calc_type'] == 'EoD':
+    st.session_state['mm_buffer'] = st.sidebar.number_input(label='MM Buffer', min_value=0.,max_value=1., value=0.25, step=0.01, format='%.2f', help='MM = max(LONG, SHORT) * (1+ MM Buffer). Note that EoD premium will be added for options')
+    st.session_state['im_buffer'] = st.sidebar.number_input(label='IM Buffer', min_value=st.session_state['mm_buffer'],max_value=1.,value=st.session_state['mm_buffer'], step=0.01, format='%.2f', help='IM = max(LONG, SHORT) * (1+ IM Buffer). Note that EoD premium will be added for options')    
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>IM AND MM - COMPUTED BY B/O & SENT TO F/O</p>", unsafe_allow_html=True)
 fit_margins = pd.DataFrame(st.session_state['qccp_margins'].max(axis=1))
 fit_margins.columns = ['MM']
 fit_margins = fit_margins.assign(**{'MM':np.multiply(fit_margins.MM, 1 + st.session_state['mm_buffer']), 'IM':np.multiply(fit_margins.MM, 1 + st.session_state['im_buffer'])})
-fit_margins = fit_margins.assign(**{'MM':np.where(fit_margins.index=='Future', fit_margins.MM, np.add(fit_margins.MM, st.session_state['theor_prices']['THEORETICAL PRICE'])), 
-                                    'IM':np.where(fit_margins.index=='Future', fit_margins.IM, np.add(fit_margins.IM, st.session_state['theor_prices']['THEORETICAL PRICE']))})
+if st.session_state['calc_type'] == 'ItD':
+    fit_margins = fit_margins.assign(**{'MM':np.where(fit_margins.index=='Future', fit_margins.MM, np.add(fit_margins.MM, st.session_state['theor_prices']['THEORETICAL PRICE'])), 
+                                        'IM':np.where(fit_margins.index=='Future', fit_margins.IM, np.add(fit_margins.IM, st.session_state['theor_prices']['THEORETICAL PRICE']))})
+elif st.session_state['calc_type'] == 'EoD':
+    fit_margins = fit_margins.assign(**{'MM':np.where(fit_margins.index=='Future', fit_margins.MM, np.add(fit_margins.MM, st.session_state['theor_prices']['EOD PRICE T'])), 
+                                        'IM':np.where(fit_margins.index=='Future', fit_margins.IM, np.add(fit_margins.IM, st.session_state['theor_prices']['EOD PRICE T-1']))})   
 st.session_state['fit_margins'] = fit_margins
 st.sidebar.dataframe(st.session_state['fit_margins'], use_container_width=True)
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>CLIENT  COLLATERAL - B/O & F/O</p>", unsafe_allow_html=True)
@@ -46,8 +56,6 @@ sod_collateral_ccp = pd.DataFrame({'COLLATERAL ACCOUNT': ['OSA'],
 sod_collateral_ccp = sod_collateral_ccp.set_index('COLLATERAL ACCOUNT')
 st.session_state['sod_collateral_ccp'] = st.sidebar.data_editor(sod_collateral_ccp, disabled=('COLLATERAL ACCOUNT'), use_container_width=True)
 
-
-st.session_state['calc_type'] = st.selectbox('TYPE OF CALCULATION', options=['ItD', 'EoD'], index=0)
 ##### SoD OPEN POSITION #####
 st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>SoD OPEN POSITION</p>", unsafe_allow_html=True)
 prev_day_pos = pd.DataFrame({'SYMBOL': ['Future', 'Call', 'Put', 'Future', 'Call', 'Put', 'Future', 'Call', 'Put'],
