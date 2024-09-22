@@ -198,7 +198,7 @@ Pending Premium should be computed EoD by B/O system for trades in options, to c
                                                                                                                                     st.session_state['trades']['CONTRACT SIZE']),
                                                                                                                                     np.subtract(st.session_state['trades']['THEORETICAL PRICE'], st.session_state['trades']['PRICE'])))
                                                                                                 })
-            st.session_state['trades'] = st.session_state['trades'][['CLIENT', 'SYMBOL', 'QUANTITY', 'PRICE', 'SIDE', 'EOD PRICE T', 'CVM', 'PENDING PREMIUM']]
+            st.session_state['trades'] = st.session_state['trades'][['CLIENT', 'SYMBOL', 'QUANTITY', 'PRICE', 'SIDE', 'THEORETICAL PRICE', 'CVM', 'PENDING PREMIUM']]
             st.session_state['day_trades'] = st.session_state['trades'].assign(**{'QUANTITY': np.where(st.session_state['trades']['SIDE']=='Buy',
                                                                                                        st.session_state['trades']['QUANTITY'],
                                                                                                        np.multiply( st.session_state['trades']['QUANTITY'], -1))})
