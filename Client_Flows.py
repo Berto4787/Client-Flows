@@ -345,23 +345,24 @@ with st.expander('Click to see results'):
             cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT COLLATERAL BALANCE/NEXT DAY BUYING POWER</p>", unsafe_allow_html=True)
             cli.dataframe(st.session_state['client_bp'],use_container_width=True)   
         # Broker - CCP:
-        st.session_state['ccp_col_balance'] = st.session_state['sod_collateral_ccp']
-        st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'IM': st.session_state['open_pos']['MAINTENANCE MARGIN'].sum(axis=0) * 0.2})
-        if st.session_state['calc_type'] == 'ItD':
-            aggregated_req = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'], values=['CVM', 'NLV'], aggfunc='sum')
-            st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].join(aggregated_req, how='left')
-            st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'TOTAL LIABILITIES': np.subtract(np.add( st.session_state['ccp_col_balance']['CVM'],
-                                                                                                                                        st.session_state['ccp_col_balance']['NLV']),
-                                                                                                                                 st.session_state['ccp_col_balance']['IM'])})
-        elif st.session_state['calc_type'] == 'EoD':
-            aggregated_req = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'], values=['NLV'], aggfunc='sum')
-            st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].join(aggregated_req, how='left')
-            st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'TOTAL LIABILITIES': np.subtract( st.session_state['ccp_col_balance']['NLV'],
-                                                                                                                                 st.session_state['ccp_col_balance']['IM'])})
-        # Required collateral
-        st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'REQUIRED COLLATERAL': np.abs(np.minimum(np.add(st.session_state['ccp_col_balance']['TOTAL LIABILITIES'],
-                                                                                                                                            st.session_state['ccp_col_balance']['COLLATERAL']), 0))})
-        st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'AVAILABLE COLLATERAL': np.maximum(np.add(st.session_state['ccp_col_balance']['TOTAL LIABILITIES'],
-                                                                                                                                      st.session_state['ccp_col_balance']['COLLATERAL']), 0)})    
-        ccp.markdown("<p style='text-align: center;'font-size:18px;'>BROKER/CM - CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
-        ccp.dataframe(st.session_state['ccp_col_balance'],use_container_width=True)
+        if 'open_pos_ccp' in st.session_state.keys():
+            st.session_state['ccp_col_balance'] = st.session_state['sod_collateral_ccp']
+            st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'IM': st.session_state['open_pos']['MAINTENANCE MARGIN'].sum(axis=0) * 0.2})
+            if st.session_state['calc_type'] == 'ItD':
+                aggregated_req = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'], values=['CVM', 'NLV'], aggfunc='sum')
+                st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].join(aggregated_req, how='left')
+                st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'TOTAL LIABILITIES': np.subtract(np.add( st.session_state['ccp_col_balance']['CVM'],
+                                                                                                                                            st.session_state['ccp_col_balance']['NLV']),
+                                                                                                                                     st.session_state['ccp_col_balance']['IM'])})
+            elif st.session_state['calc_type'] == 'EoD':
+                aggregated_req = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'], values=['NLV'], aggfunc='sum')
+                st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].join(aggregated_req, how='left')
+                st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'TOTAL LIABILITIES': np.subtract( st.session_state['ccp_col_balance']['NLV'],
+                                                                                                                                     st.session_state['ccp_col_balance']['IM'])})
+            # Required collateral
+            st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'REQUIRED COLLATERAL': np.abs(np.minimum(np.add(st.session_state['ccp_col_balance']['TOTAL LIABILITIES'],
+                                                                                                                                                st.session_state['ccp_col_balance']['COLLATERAL']), 0))})
+            st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'AVAILABLE COLLATERAL': np.maximum(np.add(st.session_state['ccp_col_balance']['TOTAL LIABILITIES'],
+                                                                                                                                          st.session_state['ccp_col_balance']['COLLATERAL']), 0)})    
+            ccp.markdown("<p style='text-align: center;'font-size:18px;'>BROKER/CM - CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
+            ccp.dataframe(st.session_state['ccp_col_balance'],use_container_width=True)
