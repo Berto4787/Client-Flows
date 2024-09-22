@@ -74,7 +74,10 @@ with st.container():
     st.session_state['new_quantity'] = st.number_input(label='Quantity', min_value=1, value=1)
     st.session_state['new_price'] = st.number_input(label='Price' ,min_value=0., step=0.001, value=st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['THEORETICAL PRICE'], format='%.3f')
     st.session_state['new_side']  = st.selectbox('Side', options=['Buy', 'Sell'], index=0)
-    st.session_state['new_type']  = st.selectbox('Side', options=['Order', 'Trade'], index=0)
+    st.session_state['new_type']  = st.selectbox('Type', options=['Order', 'Trade'], index=0)
+    st.text_area("",
+                 """ Use 'Order' to submit outstanding orders and 'Trade' for executed Trades""",
+                 disabled=True)
     submit_button = st.button(label='Submit')
 
   if submit_button:
@@ -172,7 +175,7 @@ with st.expander('Click to see break down'):
         elif st.session_state['calc_type'] == 'ItD':        
             st.markdown("<p style='text-align: center;'font-size:18px;'>SoD OPEN POSITION - CVM CALCULATION </p>", unsafe_allow_html=True) 
             st.dataframe(st.session_state['prev_day_pos_calc'].drop(columns=['PENDING PREMIUM']), use_container_width=True, hide_index=True)
-            st.text_area("",""" Contingen Variation Margin (CVM) should be computed ItD by F/O system for futures positons carried forward from previous days as a component of Buying Power computation.
+            st.text_area("",""" Contingent Variation Margin (CVM) should be computed ItD by F/O system for futures positons carried forward from previous days as a component of Buying Power computation.
                          CVM = Quantity * Contract Size * (ItD Theoretical Price - EoD Price T-1)""", disabled=True)
 
     if 'trades' in st.session_state.keys():
@@ -181,14 +184,18 @@ with st.expander('Click to see break down'):
             st.dataframe(st.session_state['trades'], use_container_width=True, hide_index=True)
             st.text_area("",
                          """ Realized Variation Margin (RVM) should be computed EoD by B/O system to MtM each trade on futures to EoD official settlement price.
-                         RVM = Quantity * Contract Size * (EoD Price T - Execution Price)""", disabled=True)
+                         RVM = Quantity * Contract Size * (EoD Price T - Execution Price)
+                         Pending Premium should be computed both ItD & EoD by B/O system for trades in options, to compute the premium settlement as part of the clearing obligations:
+                         Pending Premium = Quantity * Contract Size * Execution Premium""", disabled=True)
             
         elif st.session_state['calc_type'] == 'ItD':
             st.markdown("<p style='text-align: center;'font-size:18px;'>EXECUTED TRADES - CVM CALCULATION</p>", unsafe_allow_html=True)
             st.dataframe(st.session_state['trades'], use_container_width=True, hide_index=True)
             st.text_area("",
-                         """ Contingen Variation Margin (CVM) should be computed ItD by F/O system for each trade on futures as a component of Buying Power computation.
-                         CVM = Quantity * Contract Size * (ItD Theoretical Price - Execution Price)""", 
+                         """ Contingent Variation Margin (CVM) should be computed ItD by F/O system for each trade on futures as a component of Buying Power computation.
+                         CVM = Quantity * Contract Size * (ItD Theoretical Price - Execution Price)
+                         Pending Premium should be computed both ItD & EoD by B/O system for trades in options, to compute the premium settlement as part of the clearing obligations:
+                         Pending Premium = Quantity * Contract Size * Execution Premium""", 
                          disabled=True)
        
 if 'day_trades' in st.session_state.keys():
