@@ -391,7 +391,7 @@ if st.session_state['open_pos'].shape[0]>0:
                 cli.dataframe(st.session_state['client_bp'],use_container_width=True)
                 cli.text_area("",
                               """ItD client's buying power will be used for pre-trade controls (F/O system) and to monitor client's collateral consumption (B/O system).
-     
+
 - Collateral: Client's collateral position (cash value of the collateral posted by the client). Updates on this value should be sent from B/O system to F/O  system.
 - Open Position Req: Total requirements computed for outstanding open positions at client level.
 - Outstanding Orders Req: Total requirements computed for outstanding orders at client level.
@@ -409,8 +409,7 @@ if st.session_state['open_pos'].shape[0]>0:
                 cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT COLLATERAL BALANCE/NEXT DAY BUYING POWER</p>", unsafe_allow_html=True)
                 cli.dataframe(st.session_state['client_bp'],use_container_width=True)
                 cli.text_area("",
-                              """
-- Collateral: Client's collateral position (cash value of the collateral posted by the client) before EoD settlement.
+                              """- Collateral: Client's collateral position (cash value of the collateral posted by the client) before EoD settlement.
 - Open Position Req: Total requirements computed for outstanding open positions at client level.
 - Outstanding Orders Req: Total requirements computed for outstanding orders at client level.
 - Total Settlement: Clearing obligations settlement amount at client level.
@@ -440,8 +439,7 @@ if st.session_state['open_pos'].shape[0]>0:
                 ccp.markdown("<p style='text-align: center;'font-size:18px;'>BROKER/CM - CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
                 ccp.dataframe(st.session_state['ccp_col_balance'],use_container_width=True)
                 ccp.text_area("",
-                              """
-- Collateral: CM's collateral position in the corresponding collateral account (cash value of the collateral posted by the CM).
+                              """- Collateral: CM's collateral position in the corresponding collateral account (cash value of the collateral posted by the CM).
 - IM: IM figures computed by CCP at margin account level and aggregated at collateral account level (Filtered HVaR model applied. It won't be replicable by B/O system).
 - CVM: CVM aggregated at collateral account level (applicable just ItD).
 - NLV: NLV aggregated at collateral account level.
