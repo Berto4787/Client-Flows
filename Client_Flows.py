@@ -158,10 +158,10 @@ elif st.session_state['calc_type'] == 'ItD':
                                                                                                                        np.subtract(st.session_state['prev_day_pos_calc']['THEORETICAL PRICE'],st.session_state['prev_day_pos_calc']['EOD PRICE T-1']))),
                                                                                            'PENDING PREMIUM': 0.})
 
-if (st.session_state['calc_type'] == 'EoD') & (st.session_state['prev_day_pos_calc'].shape[0]>0):
+if (st.session_state['calc_type'] == 'EoD') & ((st.session_state['prev_day_pos_calc'].shape[0]>0) or ('day_trades' in st.session_state.keys())):
     st.divider()
     st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>REALIZED VARIATION MARGIN - BREAK DOWN</p>", unsafe_allow_html=True)
-elif (st.session_state['calc_type'] == 'ItD') & (st.session_state['prev_day_pos_calc'].shape[0]>0):
+elif (st.session_state['calc_type'] == 'ItD') & (((st.session_state['prev_day_pos_calc'].shape[0]>0) or ('day_trades' in st.session_state.keys())):
     st.divider()
     st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CONTINGENT VARIATION MARGIN & PENDING PREMIUM - BREAK DOWN</p>", unsafe_allow_html=True)
 with st.expander('Click to see break down'):
@@ -354,82 +354,84 @@ elif st.session_state['calc_type'] == 'EoD':
 st.divider()
 st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
 with st.expander('Click to see results'):
-    with st.container():
-        cli, ccp = st.columns([1,1])
-        # Client - Broker
-        st.session_state['client_bp'] = st.session_state['sod_collateral']
-        if st.session_state['open_pos'].shape[0]:
-            open_pos_req = st.session_state['open_pos'].pivot_table(index=['CLIENT'], values=['TOTAL REQUIREMENT'],
-                                                                    aggfunc='sum')
-            st.session_state['client_bp'] = st.session_state['client_bp'].join(open_pos_req, how='left')
-            st.session_state['client_bp'] = st.session_state['client_bp'].rename(columns={'TOTAL REQUIREMENT': 'OPEN POSITION REQ'})
-        else:
-            st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'OPEN POSITION REQ': 0.})
-        if 'orders' in st.session_state.keys():
-            accepted_orders = st.session_state['orders'][st.session_state['orders'].STATUS=='ACCEPTED']
-            if accepted_orders.shape[0]:
-                accepted_orders = accepted_orders.pivot_table(index=['CLIENT'], values=['TOTAL REQUIREMENT'],
-                                                              aggfunc='sum')
-                st.session_state['client_bp'] = st.session_state['client_bp'].join(accepted_orders, how='left')
-                st.session_state['client_bp'] = st.session_state['client_bp'].rename(columns={'TOTAL REQUIREMENT': 'OUTSTANDING ORDERS REQ'})
+    if 'open_pos' in st.session_state.keys():
+        with st.container():
+            cli, ccp = st.columns([1,1])
+            # Client - Broker
+            st.session_state['client_bp'] = st.session_state['sod_collateral']
+            if st.session_state['open_pos'].shape[0]:
+                open_pos_req = st.session_state['open_pos'].pivot_table(index=['CLIENT'], values=['TOTAL REQUIREMENT'],
+                                                                        aggfunc='sum')
+                st.session_state['client_bp'] = st.session_state['client_bp'].join(open_pos_req, how='left')
+                st.session_state['client_bp'] = st.session_state['client_bp'].rename(columns={'TOTAL REQUIREMENT': 'OPEN POSITION REQ'})
+            else:
+                st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'OPEN POSITION REQ': 0.})
+            if 'orders' in st.session_state.keys():
+                accepted_orders = st.session_state['orders'][st.session_state['orders'].STATUS=='ACCEPTED']
+                if accepted_orders.shape[0]:
+                    accepted_orders = accepted_orders.pivot_table(index=['CLIENT'], values=['TOTAL REQUIREMENT'],
+                                                                  aggfunc='sum')
+                    st.session_state['client_bp'] = st.session_state['client_bp'].join(accepted_orders, how='left')
+                    st.session_state['client_bp'] = st.session_state['client_bp'].rename(columns={'TOTAL REQUIREMENT': 'OUTSTANDING ORDERS REQ'})
+                else:
+                    st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'OUTSTANDING ORDERS REQ': 0.})
             else:
                 st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'OUTSTANDING ORDERS REQ': 0.})
-        else:
-            st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'OUTSTANDING ORDERS REQ': 0.})
-            
-        st.session_state['client_bp'] = st.session_state['client_bp'].fillna(0)
-     
-        if st.session_state['calc_type'] == 'ItD':
-            st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'BUYING POWER': np.maximum(np.subtract(st.session_state['client_bp'].COLLATERAL,
-                                                                                                                           np.add(st.session_state['client_bp']['OPEN POSITION REQ'],
-                                                                                                                                  st.session_state['client_bp']['OUTSTANDING ORDERS REQ'])), 0)})
-            cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT COLLATERAL BALANCE</p>", unsafe_allow_html=True)
-            cli.dataframe(st.session_state['client_bp'],use_container_width=True)
-            cli.text_area("",
-                          """ItD client's buying power will be used for pre-trade controls (F/O system) and to monitor client's collateral consumption (B/O system).
- - Collateral: Client's collateral position (cash value of the collateral posted by the client). Updates on this value should be sent from B/O system to F/O  system.
- - Open Position Req: Total requirements computed for outstanding open positions at client level.
- - Outstanding Orders Req: Total requirements computed for outstanding orders at client level.
- - Buying Power: Collateral - Open Position Req - Outstandin Orders Req.""",
-                                  disabled=True)
-        elif st.session_state['calc_type'] == 'EoD':
-            st.session_state['client_bp'] = st.session_state['client_bp'].join(st.session_state['client_settlement'][['TOTAL SETTLEMENT']], how='left')
-            st.session_state['client_bp'] =  st.session_state['client_bp'].fillna(0)
-            st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'AVAILABLE COLLATERAL': np.maximum(np.add(np.subtract(st.session_state['client_bp'].COLLATERAL,
-                                                                                                                                                      np.add(st.session_state['client_bp']['OPEN POSITION REQ'],
-                                                                                                                                                             st.session_state['client_bp']['OUTSTANDING ORDERS REQ'])),
-                                                                                                                                          st.session_state['client_bp']['TOTAL SETTLEMENT']),
-                                                                                                                                   0),
-                                                                                   'NEXT DAY COLLATERAL POS': np.add(st.session_state['client_bp'].COLLATERAL, st.session_state['client_bp']['TOTAL SETTLEMENT'])})
-            cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT COLLATERAL BALANCE/NEXT DAY BUYING POWER</p>", unsafe_allow_html=True)
-            cli.dataframe(st.session_state['client_bp'],use_container_width=True)
-            cli.text_area("",
-                          """
- - Collateral: Client's collateral position (cash value of the collateral posted by the client). Updates on this value should be sent from B/O system to F/O  system.
- - Open Position Req: Total requirements computed for outstanding open positions at client level.
- - Outstanding Orders Req: Total requirements computed for outstanding orders at client level.
- - Buying Power: Collateral - Open Position Req - Outstandin Orders Req.""",
-                                  disabled=True)
-        # Broker - CCP:
-        if 'open_pos_ccp' in st.session_state.keys():
-            st.session_state['ccp_col_balance'] = st.session_state['sod_collateral_ccp']
-            st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'IM': st.session_state['open_pos']['MAINTENANCE MARGIN'].sum(axis=0) * 0.2})
+                
+            st.session_state['client_bp'] = st.session_state['client_bp'].fillna(0)
+         
             if st.session_state['calc_type'] == 'ItD':
-                aggregated_req = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'], values=['CVM', 'NLV'], aggfunc='sum')
-                st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].join(aggregated_req, how='left')
-                st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'TOTAL LIABILITIES': np.subtract(np.add( st.session_state['ccp_col_balance']['CVM'],
-                                                                                                                                            st.session_state['ccp_col_balance']['NLV']),
-                                                                                                                                     st.session_state['ccp_col_balance']['IM'])})
+                st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'BUYING POWER': np.maximum(np.subtract(st.session_state['client_bp'].COLLATERAL,
+                                                                                                                               np.add(st.session_state['client_bp']['OPEN POSITION REQ'],
+                                                                                                                                      st.session_state['client_bp']['OUTSTANDING ORDERS REQ'])), 0)})
+                cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT COLLATERAL BALANCE</p>", unsafe_allow_html=True)
+                cli.dataframe(st.session_state['client_bp'],use_container_width=True)
+                cli.text_area("",
+                              """ItD client's buying power will be used for pre-trade controls (F/O system) and to monitor client's collateral consumption (B/O system).
+     
+     - Collateral: Client's collateral position (cash value of the collateral posted by the client). Updates on this value should be sent from B/O system to F/O  system.
+     - Open Position Req: Total requirements computed for outstanding open positions at client level.
+     - Outstanding Orders Req: Total requirements computed for outstanding orders at client level.
+     - Buying Power: Collateral - Open Position Req - Outstandin Orders Req.""",
+                                      disabled=True)
             elif st.session_state['calc_type'] == 'EoD':
-                aggregated_req = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'], values=['NLV'], aggfunc='sum')
-                st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].join(aggregated_req, how='left')
-                st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'TOTAL LIABILITIES': np.subtract( st.session_state['ccp_col_balance']['NLV'],
-                                                                                                                                     st.session_state['ccp_col_balance']['IM'])})
-            # Required collateral
-            st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'REQUIRED COLLATERAL': np.abs(np.minimum(np.add(st.session_state['ccp_col_balance']['TOTAL LIABILITIES'],
-                                                                                                                                                st.session_state['ccp_col_balance']['COLLATERAL']), 0))})
-            st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'AVAILABLE COLLATERAL': np.maximum(np.add(st.session_state['ccp_col_balance']['TOTAL LIABILITIES'],
-                                                                                                                                          st.session_state['ccp_col_balance']['COLLATERAL']), 0)})    
-            ccp.markdown("<p style='text-align: center;'font-size:18px;'>BROKER/CM - CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
-            ccp.dataframe(st.session_state['ccp_col_balance'],use_container_width=True)
+                st.session_state['client_bp'] = st.session_state['client_bp'].join(st.session_state['client_settlement'][['TOTAL SETTLEMENT']], how='left')
+                st.session_state['client_bp'] =  st.session_state['client_bp'].fillna(0)
+                st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'AVAILABLE COLLATERAL': np.maximum(np.add(np.subtract(st.session_state['client_bp'].COLLATERAL,
+                                                                                                                                                          np.add(st.session_state['client_bp']['OPEN POSITION REQ'],
+                                                                                                                                                                 st.session_state['client_bp']['OUTSTANDING ORDERS REQ'])),
+                                                                                                                                              st.session_state['client_bp']['TOTAL SETTLEMENT']),
+                                                                                                                                       0),
+                                                                                       'NEXT DAY COLLATERAL POS': np.add(st.session_state['client_bp'].COLLATERAL, st.session_state['client_bp']['TOTAL SETTLEMENT'])})
+                cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT COLLATERAL BALANCE/NEXT DAY BUYING POWER</p>", unsafe_allow_html=True)
+                cli.dataframe(st.session_state['client_bp'],use_container_width=True)
+                cli.text_area("",
+                              """
+     - Collateral: Client's collateral position (cash value of the collateral posted by the client). Updates on this value should be sent from B/O system to F/O  system.
+     - Open Position Req: Total requirements computed for outstanding open positions at client level.
+     - Outstanding Orders Req: Total requirements computed for outstanding orders at client level.
+     - Buying Power: Collateral - Open Position Req - Outstandin Orders Req.""",
+                                      disabled=True)
+            # Broker - CCP:
+            if 'open_pos_ccp' in st.session_state.keys():
+                st.session_state['ccp_col_balance'] = st.session_state['sod_collateral_ccp']
+                st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'IM': st.session_state['open_pos']['MAINTENANCE MARGIN'].sum(axis=0) * 0.2})
+                if st.session_state['calc_type'] == 'ItD':
+                    aggregated_req = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'], values=['CVM', 'NLV'], aggfunc='sum')
+                    st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].join(aggregated_req, how='left')
+                    st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'TOTAL LIABILITIES': np.subtract(np.add( st.session_state['ccp_col_balance']['CVM'],
+                                                                                                                                                st.session_state['ccp_col_balance']['NLV']),
+                                                                                                                                         st.session_state['ccp_col_balance']['IM'])})
+                elif st.session_state['calc_type'] == 'EoD':
+                    aggregated_req = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'], values=['NLV'], aggfunc='sum')
+                    st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].join(aggregated_req, how='left')
+                    st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'TOTAL LIABILITIES': np.subtract( st.session_state['ccp_col_balance']['NLV'],
+                                                                                                                                         st.session_state['ccp_col_balance']['IM'])})
+                # Required collateral
+                st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'REQUIRED COLLATERAL': np.abs(np.minimum(np.add(st.session_state['ccp_col_balance']['TOTAL LIABILITIES'],
+                                                                                                                                                    st.session_state['ccp_col_balance']['COLLATERAL']), 0))})
+                st.session_state['ccp_col_balance'] = st.session_state['ccp_col_balance'].assign(**{'AVAILABLE COLLATERAL': np.maximum(np.add(st.session_state['ccp_col_balance']['TOTAL LIABILITIES'],
+                                                                                                                                              st.session_state['ccp_col_balance']['COLLATERAL']), 0)})    
+                ccp.markdown("<p style='text-align: center;'font-size:18px;'>BROKER/CM - CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
+                ccp.dataframe(st.session_state['ccp_col_balance'],use_container_width=True)
             
