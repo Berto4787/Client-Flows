@@ -62,7 +62,7 @@ with st.expander('Click to input SoD client portfolios'):
     st.text_area("",
                  """ Clients' net position at SoD. To be mantained by B/O system and disseminated to F/O at SoD.
                          - Quantity: Positive amount indicates long net position whereas negative indices short net position.
-                    """, disabled=True, height=2)
+                    """, disabled=True, height=1)
 
 ##### ORDER FORM #####
 with st.container():
