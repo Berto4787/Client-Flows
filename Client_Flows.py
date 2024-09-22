@@ -229,9 +229,7 @@ if 'orders' in st.session_state.keys():
     with st.expander('Click to display outstanding orders'):
         st.dataframe(st.session_state['orders'], use_container_width=True, hide_index=True)
 ##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - BREAK DOWN #####
-if st.session_state['open_pos'].shape[0]:
-    pass
-else:
+if st.session_state['open_pos'].shape[0]>0:
     st.divider()
     st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP OPEN POSITION - BREAK DOWN</p>", unsafe_allow_html=True)
     with st.expander('Click to see break down'):
