@@ -161,7 +161,7 @@ elif st.session_state['calc_type'] == 'ItD':
 if (st.session_state['calc_type'] == 'EoD') & (st.session_state['prev_day_pos_calc'].shape[0]>0):
     st.divider()
     st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>REALIZED VARIATION MARGIN - BREAK DOWN</p>", unsafe_allow_html=True)
-elif (st.session_state['calc_type'] == 'ItD') & (st.session_state['prev_day_pos_calc']>0):
+elif (st.session_state['calc_type'] == 'ItD') & (st.session_state['prev_day_pos_calc'].shape[0]>0):
     st.divider()
     st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CONTINGENT VARIATION MARGIN & PENDING PREMIUM - BREAK DOWN</p>", unsafe_allow_html=True)
 with st.expander('Click to see break down'):
