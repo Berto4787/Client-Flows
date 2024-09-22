@@ -185,7 +185,7 @@ with st.expander('Click to see break down'):
             st.text_area("",
                          """ Realized Variation Margin (RVM) should be computed EoD by B/O system to MtM each trade on futures to EoD official settlement price.
                          RVM = Quantity * Contract Size * (EoD Price T - Execution Price)
-Pending Premium should be computed both ItD & EoD by B/O system for trades in options, to compute the premium settlement as part of the clearing obligations:
+Pending Premium should be computed EoD by B/O system for trades in options, to compute the premium settlement as part of the clearing obligations:
                          Pending Premium = Quantity * Contract Size * Execution Premium""", disabled=True)
             
         elif st.session_state['calc_type'] == 'ItD':
@@ -194,7 +194,7 @@ Pending Premium should be computed both ItD & EoD by B/O system for trades in op
             st.text_area("",
                          """ Contingent Variation Margin (CVM) should be computed ItD by F/O system for each trade on futures as a component of Buying Power computation.
                          CVM = Quantity * Contract Size * (ItD Theoretical Price - Execution Price)
-Pending Premium should be computed both ItD & EoD by B/O system for trades in options, to compute the premium settlement as part of the clearing obligations:
+ Pending Premium should be computed both ItD by F/O system for trades in options, as a component of Buying Power computation:
                          Pending Premium = Quantity * Contract Size * Execution Premium""", 
                          disabled=True)
        
