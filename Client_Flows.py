@@ -168,10 +168,11 @@ with st.expander('Click to see break down'):
 
     if 'trades' in st.session_state.keys():
         if st.session_state['calc_type'] == 'EoD':
-            if ('EOD PRICE T' not in st.session_state['trades'].columns):
-                st.session_state['trades'] = st.session_state['trades'].set_index('SYMBOL').join(st.session_state['eod_prices'][['EOD PRICE T']], how='left')
-                st.session_state['trades'] = st.session_state['trades'].join(st.session_state['theor_prices'][['CONTRACT SIZE']], how='left')
-                st.session_state['trades'] =  st.session_state['trades'].reset_index()
+            if ('EOD PRICE T' in st.session_state['trades'].columns):
+                st.session_state['trades'] = st.session_state['trades'].drop(columns=['THEORETICAL PRICE', 'CONTRACT SIZE'])
+            st.session_state['trades'] = st.session_state['trades'].set_index('SYMBOL').join(st.session_state['eod_prices'][['EOD PRICE T']], how='left')
+            st.session_state['trades'] = st.session_state['trades'].join(st.session_state['theor_prices'][['CONTRACT SIZE']], how='left')
+            st.session_state['trades'] =  st.session_state['trades'].reset_index()
             
             st.session_state['trades'] = st.session_state['trades'].assign(**{'RVM': np.where(st.session_state['trades']['SYMBOL']!='Future', 0.,
                                                                                                 np.multiply(np.multiply(np.multiply(np.where(st.session_state['trades']['SIDE'] == 'Buy', 1, -1), st.session_state['trades']['QUANTITY']),
@@ -193,9 +194,11 @@ with st.expander('Click to see break down'):
 Pending Premium should be computed EoD by B/O system for trades in options, to compute the premium settlement as part of the clearing obligations:
                          Pending Premium = Quantity * Contract Size * Execution Premium""", disabled=True)
         elif st.session_state['calc_type'] == 'ItD':
-            if ('THEORETICAL PRICE' not in st.session_state['trades'].columns):
-                st.session_state['trades'] = st.session_state['trades'].set_index('SYMBOL').join(st.session_state['theor_prices'], how='left')
-                st.session_state['trades'] =  st.session_state['trades'].reset_index()
+            if ('THEORETICAL PRICE' in st.session_state['trades'].columns):
+                st.session_state['trades'] = st.session_state['trades'].drop(columns=['THEORETICAL PRICE', 'CONTRACT SIZE'])
+            st.session_state['trades'] = st.session_state['trades'].set_index('SYMBOL').join(st.session_state['theor_prices'], how='left')
+            st.session_state['trades'] =  st.session_state['trades'].reset_index()
+            
             st.session_state['trades'] = st.session_state['trades'].assign(**{'CVM': np.where(st.session_state['trades']['SYMBOL']!='Future', 0.,
                                                                                                 np.multiply(np.multiply(np.multiply(np.where(st.session_state['trades']['SIDE'] == 'Buy', 1, -1), st.session_state['trades']['QUANTITY']),
                                                                                                                                     st.session_state['trades']['CONTRACT SIZE']),
