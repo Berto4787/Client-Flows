@@ -126,8 +126,8 @@ with st.container():
                                                                                                                                       st.session_state['trades']['CONTRACT SIZE']),
                                                                                                                                       np.subtract(st.session_state['trades']['EOD PRICE T'], st.session_state['trades']['PRICE'])))
                                                                                                   })
-                 st.session_state['trades'] =  st.session_state['trades'].reset_index()
-                 st.session_state['trades'] = st.session_state['trades'][['CLIENT', 'SYMBOL', 'QUANTITY', 'PRICE', 'SIDE', 'EOD PRICE T', 'RVM', 'PENDING PREMIUM']]
+                st.session_state['trades'] =  st.session_state['trades'].reset_index()
+                st.session_state['trades'] = st.session_state['trades'][['CLIENT', 'SYMBOL', 'QUANTITY', 'PRICE', 'SIDE', 'EOD PRICE T', 'RVM', 'PENDING PREMIUM']]
             elif st.session_state['calc_type'] == 'ItD':
                 st.session_state['trades'] = st.session_state['trades'].set_index('SYMBOL').join(st.session_state['theor_prices'], how='left')
                 st.session_state['trades'] = st.session_state['trades'].assign(**{'CVM': np.where(st.session_state['trades']['SYMBOL']!='Future', 0.,
@@ -135,8 +135,8 @@ with st.container():
                                                                                                                                       st.session_state['trades']['CONTRACT SIZE']),
                                                                                                                                       np.subtract(st.session_state['trades']['THEORETICAL PRICE'], st.session_state['trades']['PRICE'])))
                                                                                                   })
-                 st.session_state['trades'] =  st.session_state['trades'].reset_index()
-                 st.session_state['trades'] = st.session_state['trades'][['CLIENT', 'SYMBOL', 'QUANTITY', 'PRICE', 'SIDE', 'EOD PRICE T', 'RVM', 'PENDING PREMIUM']]
+                st.session_state['trades'] =  st.session_state['trades'].reset_index()
+                st.session_state['trades'] = st.session_state['trades'][['CLIENT', 'SYMBOL', 'QUANTITY', 'PRICE', 'SIDE', 'EOD PRICE T', 'RVM', 'PENDING PREMIUM']]
 
         st.session_state['day_trades'] = st.session_state['trades'].assign(**{'QUANTITY': np.where(st.session_state['trades']['SIDE']=='Buy',
                                                                                                    st.session_state['trades']['QUANTITY'],
