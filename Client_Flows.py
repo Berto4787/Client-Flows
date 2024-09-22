@@ -111,16 +111,6 @@ with st.container():
       else:
         st.session_state['orders'] = pd.concat([st.session_state['orders'], new_pos], axis=0, ignore_index= True)
     elif st.session_state['new_type'] == 'Trade':
-        if st.session_state['calc_type'] == 'EoD':
-            new_pos = new_pos.assign(**{'EOD PRICE T': st.session_state['eod_prices'].loc[st.session_state['new_instrument']]['EOD PRICE T']})
-            new_pos = new_pos.assign(**{'RVM': np.where(st.session_state['new_instrument']!='Future', 0.,
-                                                        np.where(st.session_state['new_side'] == 'Buy', 1, -1) * st.session_state['new_quantity'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['CONTRACT SIZE'] * (st.session_state['eod_prices'].loc[st.session_state['new_instrument']]['EOD PRICE T']-st.session_state['new_price']))})
-
-        elif st.session_state['calc_type'] == 'ItD':
-            new_pos = new_pos.assign(**{'THEORETICAL PRICE': st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['THEORETICAL PRICE']})
-            new_pos = new_pos.assign(**{'CVM': np.where(st.session_state['new_instrument']!='Future', 0.,
-                                                        np.where(st.session_state['new_side'] == 'Buy', 1, -1) * st.session_state['new_quantity'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['CONTRACT SIZE'] * (st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['THEORETICAL PRICE']-st.session_state['new_price']))})
-
         new_pos = new_pos.assign(**{'PENDING PREMIUM': np.where(st.session_state['new_instrument']=='Future', 0.,
                                                                 np.where(st.session_state['new_side'] == 'Buy', -1, 1) * st.session_state['new_quantity'] * st.session_state['new_price'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['CONTRACT SIZE'])})
 
@@ -128,6 +118,26 @@ with st.container():
             st.session_state['trades'] = new_pos
         else:
             st.session_state['trades'] = pd.concat([st.session_state['trades'], new_pos], axis=0, ignore_index= True)
+            if st.session_state['calc_type'] == 'EoD':
+                st.session_state['trades'] = st.session_state['trades'].set_index('SYMBOL').join(st.session_state['eod_prices'][['EOD PRICE T']], how='left')
+                st.session_state['trades'] = st.session_state['trades'].join(st.session_state['theor_prices'][['CONTRACT SIZE']], how='left')
+                st.session_state['trades'] = st.session_state['trades'].assign(**{'RVM': np.where(st.session_state['trades']['SYMBOL']!='Future', 0.,
+                                                                                                  np.multiply(np.multiply(np.multiply(np.where(st.session_state['trades']['SIDE'] == 'Buy', 1, -1), st.session_state['trades']['QUANTITY']),
+                                                                                                                                      st.session_state['trades']['CONTRACT SIZE']),
+                                                                                                                                      np.subtract(st.session_state['trades']['EOD PRICE T'], st.session_state['trades']['PRICE']))
+                                                                                                  })
+                 st.session_state['trades'] =  st.session_state['trades'].reset_index()
+                 st.session_state['trades'] = st.session_state['trades'][['CLIENT', 'SYMBOL', 'QUANTITY', 'PRICE', 'SIDE', 'EOD PRICE T', 'RVM', 'PENDING PREMIUM']]
+            elif st.session_state['calc_type'] == 'ItD':
+                st.session_state['trades'] = st.session_state['trades'].set_index('SYMBOL').join(st.session_state['theor_prices'], how='left')
+                st.session_state['trades'] = st.session_state['trades'].assign(**{'RVM': np.where(st.session_state['trades']['SYMBOL']!='Future', 0.,
+                                                                                                  np.multiply(np.multiply(np.multiply(np.where(st.session_state['trades']['SIDE'] == 'Buy', 1, -1), st.session_state['trades']['QUANTITY']),
+                                                                                                                                      st.session_state['trades']['CONTRACT SIZE']),
+                                                                                                                                      np.subtract(st.session_state['trades']['THEORETICAL PRICE'], st.session_state['trades']['PRICE']))
+                                                                                                  })
+                 st.session_state['trades'] =  st.session_state['trades'].reset_index()
+                 st.session_state['trades'] = st.session_state['trades'][['CLIENT', 'SYMBOL', 'QUANTITY', 'PRICE', 'SIDE', 'EOD PRICE T', 'RVM', 'PENDING PREMIUM']]
+
         st.session_state['day_trades'] = st.session_state['trades'].assign(**{'QUANTITY': np.where(st.session_state['trades']['SIDE']=='Buy',
                                                                                                    st.session_state['trades']['QUANTITY'],
                                                                                                    np.multiply( st.session_state['trades']['QUANTITY'], -1))})
