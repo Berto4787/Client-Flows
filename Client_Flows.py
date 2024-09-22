@@ -146,10 +146,10 @@ elif st.session_state['calc_type'] == 'ItD':
                                                                                                                        np.subtract(st.session_state['prev_day_pos_calc']['THEORETICAL PRICE'],st.session_state['prev_day_pos_calc']['EOD PRICE T-1']))),
                                                                                            'PENDING PREMIUM': 0.})
 
-if (st.session_state['calc_type'] == 'EoD') & ((st.session_state['prev_day_pos_calc'].shape[0]>0) or ('day_trades' in st.session_state.keys())):
+if (st.session_state['calc_type'] == 'EoD') & ((st.session_state['prev_day_pos_calc'].shape[0]>0) or ('trades' in st.session_state.keys())):
     st.divider()
     st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>REALIZED VARIATION MARGIN - BREAK DOWN</p>", unsafe_allow_html=True)
-elif (st.session_state['calc_type'] == 'ItD') & ((st.session_state['prev_day_pos_calc'].shape[0]>0) or ('day_trades' in st.session_state.keys())):
+elif (st.session_state['calc_type'] == 'ItD') & ((st.session_state['prev_day_pos_calc'].shape[0]>0) or ('trades' in st.session_state.keys())):
     st.divider()
     st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CONTINGENT VARIATION MARGIN & PENDING PREMIUM - BREAK DOWN</p>", unsafe_allow_html=True)
 with st.expander('Click to see break down'):
@@ -168,15 +168,17 @@ with st.expander('Click to see break down'):
 
     if 'trades' in st.session_state.keys():
         if st.session_state['calc_type'] == 'EoD':
-            st.session_state['trades'] = st.session_state['trades'].set_index('SYMBOL').join(st.session_state['eod_prices'][['EOD PRICE T']], how='left')
-            st.session_state['trades'] = st.session_state['trades'].join(st.session_state['theor_prices'][['CONTRACT SIZE']], how='left')
-            st.session_state['trades'] =  st.session_state['trades'].reset_index()
+            if ('EOD PRICE T' not in st.session_state['trades'].columns):
+                st.session_state['trades'] = st.session_state['trades'].set_index('SYMBOL').join(st.session_state['eod_prices'][['EOD PRICE T']], how='left')
+                st.session_state['trades'] = st.session_state['trades'].join(st.session_state['theor_prices'][['CONTRACT SIZE']], how='left')
+                st.session_state['trades'] =  st.session_state['trades'].reset_index()
+            
             st.session_state['trades'] = st.session_state['trades'].assign(**{'RVM': np.where(st.session_state['trades']['SYMBOL']!='Future', 0.,
                                                                                                 np.multiply(np.multiply(np.multiply(np.where(st.session_state['trades']['SIDE'] == 'Buy', 1, -1), st.session_state['trades']['QUANTITY']),
                                                                                                                                     st.session_state['trades']['CONTRACT SIZE']),
                                                                                                                                     np.subtract(st.session_state['trades']['EOD PRICE T'], st.session_state['trades']['PRICE'])))
                                                                                                 })
-            st.session_state['trades'] = st.session_state['trades'][['CLIENT', 'SYMBOL', 'QUANTITY', 'PRICE', 'SIDE', 'EOD PRICE T', 'RVM', 'PENDING PREMIUM']]
+            st.session_state['trades'] = st.session_state['trades'][['CLIENT', 'SYMBOL', 'QUANTITY', 'PRICE', 'SIDE', 'EOD PRICE T', 'CONTRACT SIZE', 'RVM', 'PENDING PREMIUM']]
             st.session_state['day_trades'] = st.session_state['trades'].assign(**{'QUANTITY': np.where(st.session_state['trades']['SIDE']=='Buy',
                                                                                                    st.session_state['trades']['QUANTITY'],
                                                                                                    np.multiply( st.session_state['trades']['QUANTITY'], -1))})
@@ -191,14 +193,15 @@ with st.expander('Click to see break down'):
 Pending Premium should be computed EoD by B/O system for trades in options, to compute the premium settlement as part of the clearing obligations:
                          Pending Premium = Quantity * Contract Size * Execution Premium""", disabled=True)
         elif st.session_state['calc_type'] == 'ItD':
-            st.session_state['trades'] = st.session_state['trades'].set_index('SYMBOL').join(st.session_state['theor_prices'], how='left')
-            st.session_state['trades'] =  st.session_state['trades'].reset_index()
+            if ('THEORETICAL PRICE' not in st.session_state['trades'].columns):
+                st.session_state['trades'] = st.session_state['trades'].set_index('SYMBOL').join(st.session_state['theor_prices'], how='left')
+                st.session_state['trades'] =  st.session_state['trades'].reset_index()
             st.session_state['trades'] = st.session_state['trades'].assign(**{'CVM': np.where(st.session_state['trades']['SYMBOL']!='Future', 0.,
                                                                                                 np.multiply(np.multiply(np.multiply(np.where(st.session_state['trades']['SIDE'] == 'Buy', 1, -1), st.session_state['trades']['QUANTITY']),
                                                                                                                                     st.session_state['trades']['CONTRACT SIZE']),
                                                                                                                                     np.subtract(st.session_state['trades']['THEORETICAL PRICE'], st.session_state['trades']['PRICE'])))
                                                                                                 })
-            st.session_state['trades'] = st.session_state['trades'][['CLIENT', 'SYMBOL', 'QUANTITY', 'PRICE', 'SIDE', 'THEORETICAL PRICE', 'CVM', 'PENDING PREMIUM']]
+            st.session_state['trades'] = st.session_state['trades'][['CLIENT', 'SYMBOL', 'QUANTITY', 'PRICE', 'SIDE', 'THEORETICAL PRICE', 'CONTRACT SIZE', 'CVM', 'PENDING PREMIUM']]
             st.session_state['day_trades'] = st.session_state['trades'].assign(**{'QUANTITY': np.where(st.session_state['trades']['SIDE']=='Buy',
                                                                                                        st.session_state['trades']['QUANTITY'],
                                                                                                        np.multiply( st.session_state['trades']['QUANTITY'], -1))})
