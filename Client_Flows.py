@@ -254,6 +254,13 @@ if st.session_state['open_pos'].shape[0]>0:
                 if st.session_state['calc_type'] == 'EoD':
                     cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT OPEN POSITION</p>", unsafe_allow_html=True)
                     cli.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'RVM', 'PENDING PREMIUM', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
+                    cli.text_area("",
+                                 """- Quantity: Net quantity at Client/Instrument level, aggregating previous day SoD open position and trades submitted within the day.
+ - RVM: Realized Variation Margin aggregated at Client/Instrument level (Both computed for SoD open position and trades submitted within the day).
+ - Pending Premium: Aggregated pending premiums at Client/Instrument level, computed for each executed trade on options.
+ - Maintenance Margin: Quantity * Instrument's MM
+ - Total Requirements: EoD total requirements will be equal to Maintenance Margin as RVM and Pending Premium will be settled versus client's collateral.""",
+                                  disabled=True)
                     ccp.markdown("<p style='text-align: center;'font-size:18px;'>BROKER/CM - CCP OPEN POSITION</p>", unsafe_allow_html=True)
                     st.session_state['open_pos_ccp'] = st.session_state['open_pos'].pivot_table(index=['SYMBOL'],
                                                                                                 values= ['QUANTITY', 'RVM', 'PENDING PREMIUM'],
@@ -270,9 +277,22 @@ if st.session_state['open_pos'].shape[0]>0:
                                                                                                  })
                     ccp.dataframe(st.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'EOD PRICE T', 'CONTRACT SIZE', 'RVM', 'NLV', 'PENDING PREMIUM']],
                                   use_container_width=True, hide_index=True)
+                    ccp.text_area("",
+                                 """- Quantity: Net quantity at Clearging Account/Instrument level, aggregating client/house net quantity at clearing/margin account level.
+ - RVM: Realized Variation Margin aggregated at Clearing Account/Instrument level.
+ - NLV: Computed for open positions in options (both long (positive) and short (negative)). NLV = Quantity * Contract Size * EoD Price T.
+ - Pending Premium: Aggregated pending premiums at Clearing Account/Instrument level.""",
+                                  disabled=True)
                 elif st.session_state['calc_type'] == 'ItD':
                     cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT OPEN POSITION</p>", unsafe_allow_html=True)
                     cli.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'CVM', 'PENDING PREMIUM', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
+                    cli.text_area("",
+                                 """- Quantity: Net quantity at Client/Instrument level, aggregating previous day SoD open position and trades submitted within the day.
+ - CVM: Contingent Variation Margin aggregated at Client/Instrument level (Both computed for SoD open position and trades submitted within the day).
+ - Pending Premium: Aggregated pending premiums at Client/Instrument level, computed for each executed trade on options.
+ - Maintenance Margin: Quantity * Instrument's MM
+ - Total Requirements: ItD total requirements will be equal to: MM = abs(min(min(CVM, 0) + Pending Premium - Maintenance Margin, 0))""",
+                                  disabled=True)
                     ccp.markdown("<p style='text-align: center;'font-size:18px;'>BROKER/CM - CCP OPEN POSITION</p>", unsafe_allow_html=True)
                     st.session_state['open_pos_ccp'] = st.session_state['open_pos'].pivot_table(index=['SYMBOL'],
                                                                                                 values= ['QUANTITY', 'CVM', 'PENDING PREMIUM'],
@@ -288,7 +308,12 @@ if st.session_state['open_pos'].shape[0]>0:
                                                                                                  })
                     ccp.dataframe(st.session_state['open_pos_ccp'][['CLEARING ACCOUNT', 'SYMBOL', 'QUANTITY', 'THEORETICAL PRICE', 'CONTRACT SIZE', 'CVM', 'NLV', 'PENDING PREMIUM']],
                                   use_container_width=True, hide_index=True)
-
+                    ccp.text_area("",
+                                 """- Quantity: Net quantity at Clearging Account/Instrument level, aggregating client/house net quantity at clearing/margin account level.
+ - CVM: Contingent Variation Margin aggregated at Clearing Account/Instrument level.
+ - NLV: Computed for open positions in options (both long (positive) and short (negative)). NLV = Quantity * Contract Size * Theoretical Price.
+ - Pending Premium: Aggregated pending premiums at Clearing Account/Instrument level.""",
+                                  disabled=True)
 ##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - SETTLEMENT #####
 if st.session_state['calc_type'] == 'ItD':
     pass
@@ -307,6 +332,11 @@ elif st.session_state['calc_type'] == 'EoD':
                     
                 cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT SETTLEMENT</p>", unsafe_allow_html=True)
                 cli.dataframe(st.session_state['client_settlement'],use_container_width=True)
+                cli.text_area("",
+                              """- RVM: Realized Variation Margin aggregated at Client level.
+ - Pending Premium: Aggregated pending premiums at Client level.
+ - Total Settlement: RVM + Pending Premium""",
+                                  disabled=True)
                 st.session_state['ccp_settlement'] = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'],
                                                                                                   values=['RVM', 'PENDING PREMIUM'],
                                                                                                   aggfunc='sum')
@@ -315,7 +345,11 @@ elif st.session_state['calc_type'] == 'EoD':
                     
                 ccp.markdown("<p style='text-align: center;'font-size:18px;'>BROKER/CM - CCP SETTLEMENT</p>", unsafe_allow_html=True)
                 ccp.dataframe(st.session_state['ccp_settlement'],use_container_width=True)
-
+                ccp.text_area("",
+                              """- RVM: Realized Variation Margin aggregated at Clearing/Margin Account level.
+ - Pending Premium: Aggregated pending premiums at Clearing/Margin Account level.
+ - Total Settlement: RVM + Pending Premium""",
+                                  disabled=True)
 ##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - COLLATERAL #####
 st.divider()
 st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
@@ -351,15 +385,31 @@ with st.expander('Click to see results'):
                                                                                                                                   st.session_state['client_bp']['OUTSTANDING ORDERS REQ'])), 0)})
             cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT COLLATERAL BALANCE</p>", unsafe_allow_html=True)
             cli.dataframe(st.session_state['client_bp'],use_container_width=True)
+            cli.text_area("",
+                          """ItD client's buying power will be used for pre-trade controls (F/O system) and to monitor client's collateral consumption (B/O system).
+ - Collateral: Client's collateral position (cash value of the collateral posted by the client). Updates on this value should be sent from B/O system to F/O  system.
+ - Open Position Req: Total requirements computed for outstanding open positions at client level.
+ - Outstanding Orders Req: Total requirements computed for outstanding orders at client level.
+ - Buying Power: Collateral - Open Position Req - Outstandin Orders Req.""",
+                                  disabled=True)
         elif st.session_state['calc_type'] == 'EoD':
             st.session_state['client_bp'] = st.session_state['client_bp'].join(st.session_state['client_settlement'][['TOTAL SETTLEMENT']], how='left')
-            st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'NEXT DAY BP/AVAILABLE COLLATERAL': np.maximum(np.add(np.subtract(st.session_state['client_bp'].COLLATERAL,
+            st.session_state['client_bp'] =  st.session_state['client_bp'].fillna(0)
+            st.session_state['client_bp'] = st.session_state['client_bp'].assign(**{'AVAILABLE COLLATERAL': np.maximum(np.add(np.subtract(st.session_state['client_bp'].COLLATERAL,
                                                                                                                                                       np.add(st.session_state['client_bp']['OPEN POSITION REQ'],
                                                                                                                                                              st.session_state['client_bp']['OUTSTANDING ORDERS REQ'])),
                                                                                                                                           st.session_state['client_bp']['TOTAL SETTLEMENT']),
-                                                                                                                                   0)})
+                                                                                                                                   0),
+                                                                                   'NEXT DAY COLLATERAL POS': np.add(st.session_state['client_bp'].COLLATERAL, st.session_state['client_bp']['TOTAL SETTLEMENT'])})
             cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT COLLATERAL BALANCE/NEXT DAY BUYING POWER</p>", unsafe_allow_html=True)
-            cli.dataframe(st.session_state['client_bp'],use_container_width=True)   
+            cli.dataframe(st.session_state['client_bp'],use_container_width=True)
+            cli.text_area("",
+                          """
+ - Collateral: Client's collateral position (cash value of the collateral posted by the client). Updates on this value should be sent from B/O system to F/O  system.
+ - Open Position Req: Total requirements computed for outstanding open positions at client level.
+ - Outstanding Orders Req: Total requirements computed for outstanding orders at client level.
+ - Buying Power: Collateral - Open Position Req - Outstandin Orders Req.""",
+                                  disabled=True)
         # Broker - CCP:
         if 'open_pos_ccp' in st.session_state.keys():
             st.session_state['ccp_col_balance'] = st.session_state['sod_collateral_ccp']
@@ -382,3 +432,4 @@ with st.expander('Click to see results'):
                                                                                                                                           st.session_state['ccp_col_balance']['COLLATERAL']), 0)})    
             ccp.markdown("<p style='text-align: center;'font-size:18px;'>BROKER/CM - CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
             ccp.dataframe(st.session_state['ccp_col_balance'],use_container_width=True)
+            
