@@ -235,6 +235,14 @@ if 'orders' in st.session_state.keys():
     st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>OUTSTANDING ORDERS</p>", unsafe_allow_html=True)
     with st.expander('Click to display outstanding orders'):
         st.dataframe(st.session_state['orders'], use_container_width=True, hide_index=True)
+        st.text_area("",
+                     """Margin requirements for outstanding order should be computed ItD by F/O system and EoD by B/O system.
+                            Initial Margin: Applicable to futures and short option positions -> IM = Quantity * Instrument's IM.
+                            Pending Premium: Negative (margin requirement) for long options and positive (credit) for short options -> Pending Premium = Quantity * Contract Size * Premium (equal to order price or reference price for market orders).
+                            Current Buying Power: Client's buying power when order was submitted.
+                            Total Requirement: abs(Pending Premium - Initial Margin, 0)
+                            Status: Accepted if Current Buying Power >= Total Requirement. Otherwise Rejected (Rejected orders won't have an impact on buying power calculation).
+                    """, disabled=True, height=1)
 ##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - BREAK DOWN #####
 if st.session_state['open_pos'].shape[0]>0:
     st.divider()
