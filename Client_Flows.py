@@ -315,46 +315,47 @@ if st.session_state['open_pos'].shape[0]>0:
  - Pending Premium: Aggregated pending premiums at Clearing Account/Instrument level.""",
                                   disabled=True)
 ##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - SETTLEMENT #####
-if st.session_state['calc_type'] == 'ItD':
-    pass
-elif st.session_state['calc_type'] == 'EoD':
-    st.divider()
-    st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP SETTLEMENTS</p>", unsafe_allow_html=True)
-    with st.expander('Click to see EoD settlement'):
-        with st.container():
-            cli, ccp = st.columns([1,1])
-            if st.session_state['open_pos'].shape[0]:
-                st.session_state['client_settlement'] = st.session_state['open_pos'].pivot_table(index=['CLIENT'],
-                                                                                                 values=['RVM', 'PENDING PREMIUM'],
-                                                                                                 aggfunc='sum')
-                st.session_state['client_settlement'] = st.session_state['client_settlement'].assign(**{'TOTAL SETTLEMENT': np.add(st.session_state['client_settlement'].RVM,
-                                                                                                                                   st.session_state['client_settlement']['PENDING PREMIUM'])})
-                    
-                cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT SETTLEMENT</p>", unsafe_allow_html=True)
-                cli.dataframe(st.session_state['client_settlement'],use_container_width=True)
-                cli.text_area("",
-                              """- RVM: Realized Variation Margin aggregated at Client level.
- - Pending Premium: Aggregated pending premiums at Client level.
- - Total Settlement: RVM + Pending Premium""",
-                                  disabled=True)
-                st.session_state['ccp_settlement'] = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'],
-                                                                                                  values=['RVM', 'PENDING PREMIUM'],
-                                                                                                  aggfunc='sum')
-                st.session_state['ccp_settlement'] = st.session_state['ccp_settlement'].assign(**{'TOTAL SETTLEMENT': np.add(st.session_state['ccp_settlement'].RVM,
-                                                                                                                             st.session_state['ccp_settlement']['PENDING PREMIUM'])})
-                    
-                ccp.markdown("<p style='text-align: center;'font-size:18px;'>BROKER/CM - CCP SETTLEMENT</p>", unsafe_allow_html=True)
-                ccp.dataframe(st.session_state['ccp_settlement'],use_container_width=True)
-                ccp.text_area("",
-                              """- RVM: Realized Variation Margin aggregated at Clearing/Margin Account level.
- - Pending Premium: Aggregated pending premiums at Clearing/Margin Account level.
- - Total Settlement: RVM + Pending Premium""",
-                                  disabled=True)
+if st.session_state['open_pos'].shape[0]>0:
+    if st.session_state['calc_type'] == 'ItD':
+        pass
+    elif st.session_state['calc_type'] == 'EoD':
+        st.divider()
+        st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP SETTLEMENTS</p>", unsafe_allow_html=True)
+        with st.expander('Click to see EoD settlement'):
+            with st.container():
+                cli, ccp = st.columns([1,1])
+                if st.session_state['open_pos'].shape[0]:
+                    st.session_state['client_settlement'] = st.session_state['open_pos'].pivot_table(index=['CLIENT'],
+                                                                                                     values=['RVM', 'PENDING PREMIUM'],
+                                                                                                     aggfunc='sum')
+                    st.session_state['client_settlement'] = st.session_state['client_settlement'].assign(**{'TOTAL SETTLEMENT': np.add(st.session_state['client_settlement'].RVM,
+                                                                                                                                       st.session_state['client_settlement']['PENDING PREMIUM'])})
+                        
+                    cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT SETTLEMENT</p>", unsafe_allow_html=True)
+                    cli.dataframe(st.session_state['client_settlement'],use_container_width=True)
+                    cli.text_area("",
+                                  """- RVM: Realized Variation Margin aggregated at Client level.
+     - Pending Premium: Aggregated pending premiums at Client level.
+     - Total Settlement: RVM + Pending Premium""",
+                                      disabled=True)
+                    st.session_state['ccp_settlement'] = st.session_state['open_pos_ccp'].pivot_table(index=['CLEARING ACCOUNT'],
+                                                                                                      values=['RVM', 'PENDING PREMIUM'],
+                                                                                                      aggfunc='sum')
+                    st.session_state['ccp_settlement'] = st.session_state['ccp_settlement'].assign(**{'TOTAL SETTLEMENT': np.add(st.session_state['ccp_settlement'].RVM,
+                                                                                                                                 st.session_state['ccp_settlement']['PENDING PREMIUM'])})
+                        
+                    ccp.markdown("<p style='text-align: center;'font-size:18px;'>BROKER/CM - CCP SETTLEMENT</p>", unsafe_allow_html=True)
+                    ccp.dataframe(st.session_state['ccp_settlement'],use_container_width=True)
+                    ccp.text_area("",
+                                  """- RVM: Realized Variation Margin aggregated at Clearing/Margin Account level.
+     - Pending Premium: Aggregated pending premiums at Clearing/Margin Account level.
+     - Total Settlement: RVM + Pending Premium""",
+                                      disabled=True)
 ##### CLIENT-BROKER & BROKER-CCP OPEN POSITION - COLLATERAL #####
-st.divider()
-st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
-with st.expander('Click to see results'):
-    if st.session_state['open_pos'].shape[0]>0:
+if st.session_state['open_pos'].shape[0]>0:
+    st.divider()
+    st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
+    with st.expander('Click to see results'):
         with st.container():
             cli, ccp = st.columns([1,1])
             # Client - Broker
