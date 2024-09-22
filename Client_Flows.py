@@ -354,7 +354,7 @@ elif st.session_state['calc_type'] == 'EoD':
 st.divider()
 st.markdown("<p style='text-align: center; font-size: 22px; font-weight: bold;'>CLIENT-BROKER & BROKER-CCP COLLATERAL BALANCE</p>", unsafe_allow_html=True)
 with st.expander('Click to see results'):
-    if 'open_pos' in st.session_state.keys():
+    if st.session_state['open_pos'].shape[0]>0:
         with st.container():
             cli, ccp = st.columns([1,1])
             # Client - Broker
