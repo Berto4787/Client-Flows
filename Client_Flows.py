@@ -38,8 +38,8 @@ if st.session_state['calc_type'] == 'ItD':
     fit_margins = fit_margins.assign(**{'MM':np.where(fit_margins.index=='Future', fit_margins.MM, np.add(fit_margins.MM, st.session_state['theor_prices']['THEORETICAL PRICE'])), 
                                         'IM':np.where(fit_margins.index=='Future', fit_margins.IM, np.add(fit_margins.IM, st.session_state['theor_prices']['THEORETICAL PRICE']))})
 elif st.session_state['calc_type'] == 'EoD':
-    fit_margins = fit_margins.assign(**{'MM':np.where(fit_margins.index=='Future', fit_margins.MM, np.add(fit_margins.MM, st.session_state['theor_prices']['EOD PRICE T'])), 
-                                        'IM':np.where(fit_margins.index=='Future', fit_margins.IM, np.add(fit_margins.IM, st.session_state['theor_prices']['EOD PRICE T-1']))})   
+    fit_margins = fit_margins.assign(**{'MM':np.where(fit_margins.index=='Future', fit_margins.MM, np.add(fit_margins.MM, st.session_state['eod_prices']['EOD PRICE T'])), 
+                                        'IM':np.where(fit_margins.index=='Future', fit_margins.IM, np.add(fit_margins.IM, st.session_state['eod_prices']['EOD PRICE T-1']))})   
 st.session_state['fit_margins'] = fit_margins
 st.sidebar.dataframe(st.session_state['fit_margins'], use_container_width=True)
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>CLIENT  COLLATERAL - B/O & F/O</p>", unsafe_allow_html=True)
