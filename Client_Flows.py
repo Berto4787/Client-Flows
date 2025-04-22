@@ -24,22 +24,14 @@ eod_prices = pd.DataFrame({'SYMBOL':['Future', 'Call', 'Put'], 'EOD PRICE T':[96
 eod_prices = eod_prices.set_index('SYMBOL')
 st.session_state['eod_prices'] = st.sidebar.data_editor(eod_prices, disabled=('SYMBOL'))
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>BROKER PARAMETERS - B/O</p>", unsafe_allow_html=True)
-if st.session_state['calc_type'] == 'ItD':
-    st.session_state['mm_buffer'] = st.sidebar.number_input(label='MM Buffer', min_value=0.,max_value=1., value=0.25, step=0.01, format='%.2f', help='MM = max(LONG, SHORT) * (1+ MM Buffer). Note that theoretical price will be added for options')
-    st.session_state['im_buffer'] = st.sidebar.number_input(label='IM Buffer', min_value=st.session_state['mm_buffer'],max_value=1.,value=st.session_state['mm_buffer'], step=0.01, format='%.2f', help='IM = max(LONG, SHORT) * (1+ IM Buffer). Note that theoretical price will be added for options')
-elif st.session_state['calc_type'] == 'EoD':
-    st.session_state['mm_buffer'] = st.sidebar.number_input(label='MM Buffer', min_value=0.,max_value=1., value=0.25, step=0.01, format='%.2f', help='MM = max(LONG, SHORT) * (1+ MM Buffer). Note that EoD premium will be added for options')
-    st.session_state['im_buffer'] = st.sidebar.number_input(label='IM Buffer', min_value=st.session_state['mm_buffer'],max_value=1.,value=st.session_state['mm_buffer'], step=0.01, format='%.2f', help='IM = max(LONG, SHORT) * (1+ IM Buffer). Note that EoD premium will be added for options')    
+st.session_state['mm_buffer'] = st.sidebar.number_input(label='MM Buffer', min_value=0.,max_value=1., value=0.1, step=0.01, format='%.2f', help='MM = max(LONG, SHORT) * (1 + MM Buffer) + Fees)
+st.session_state['im_buffer'] = st.sidebar.number_input(label='IM Buffer', min_value=0.,max_value=1., value=0.25, step=0.01, format='%.2f', help='IM = max(LONG, SHORT) * (1 + IM Buffer) + Fees)
+st.session_state['fees'] = st.sidebar.number_input(label='Fees', min_value=0,max_value=5000, value=10, step=1, format='%.2f') 
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>IM AND MM - COMPUTED BY B/O & SENT TO F/O</p>", unsafe_allow_html=True)
 fit_margins = pd.DataFrame(st.session_state['qccp_margins'].max(axis=1))
 fit_margins.columns = ['MM']
-fit_margins = fit_margins.assign(**{'MM':np.multiply(fit_margins.MM, 1 + st.session_state['mm_buffer']), 'IM':np.multiply(fit_margins.MM, 1 + st.session_state['im_buffer'])})
-if st.session_state['calc_type'] == 'ItD':
-    fit_margins = fit_margins.assign(**{'MM':np.where(fit_margins.index=='Future', fit_margins.MM, np.add(fit_margins.MM, st.session_state['theor_prices']['THEORETICAL PRICE'])), 
-                                        'IM':np.where(fit_margins.index=='Future', fit_margins.IM, np.add(fit_margins.IM, st.session_state['theor_prices']['THEORETICAL PRICE']))})
-elif st.session_state['calc_type'] == 'EoD':
-    fit_margins = fit_margins.assign(**{'MM':np.where(fit_margins.index=='Future', fit_margins.MM, np.add(fit_margins.MM, st.session_state['eod_prices']['EOD PRICE T'])), 
-                                        'IM':np.where(fit_margins.index=='Future', fit_margins.IM, np.add(fit_margins.IM, st.session_state['eod_prices']['EOD PRICE T-1']))})   
+fit_margins = fit_margins.assign(**{'MM':np.add(np.multiply(fit_margins.MM, 1 + st.session_state['mm_buffer']), st.session_state['fees']), 
+                                    'IM':np.add(np.multiply(fit_margins.MM, 1 + st.session_state['im_buffer']), st.session_state['fees'])}) 
 st.session_state['fit_margins'] = fit_margins
 st.sidebar.dataframe(st.session_state['fit_margins'], use_container_width=True)
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>CLIENT  COLLATERAL - B/O & F/O</p>", unsafe_allow_html=True)
@@ -62,7 +54,6 @@ prev_day_pos = pd.DataFrame({'SYMBOL': ['Future', 'Call', 'Put', 'Future', 'Call
                               'CLIENT': ['Client 1', 'Client 1', 'Client 1', 'Client 2', 'Client 2', 'Client 2', 'Client 3', 'Client 3', 'Client 3'],
                               'QUANTITY': [0., 0., 0., 0., 0., 0., 0., 0., 0.]},
                             index= np.arange(9))
-
 with st.expander('Click to input SoD client portfolios'):
     st.session_state['prev_day_pos'] = st.data_editor(prev_day_pos, 
                                                       disabled=('SYMBOL', 'CLIENT'),
@@ -71,6 +62,9 @@ with st.expander('Click to input SoD client portfolios'):
                  """ Clients' net position at SoD. To be mantained by B/O system and disseminated to F/O at SoD.
                          - Quantity: Positive amount indicates long net position whereas negative indices short net position.
                     """, disabled=True, height=1)
+
+st.session_state['prev_day_pos'] = st.session_state['prev_day_pos'].join(st.session_state['eod_prices'][['EOD PRICE T-1']], how='left')
+st.session_state['prev_day_pos'] = st.session_state['prev_day_pos'].rename(columns={'EOD PRICE T-1': 'WAP'})
 
 ##### ORDER FORM #####
 with st.container():
