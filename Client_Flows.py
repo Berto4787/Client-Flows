@@ -48,7 +48,8 @@ sod_collateral = pd.DataFrame({'CLIENT': ['Client 1', 'Client 2', 'Client 3'],
                             index= np.arange(3))
 sod_collateral = sod_collateral.set_index('CLIENT')
 st.session_state['sod_collateral'] = st.sidebar.data_editor(sod_collateral, disabled=('CLIENT'), use_container_width=True)
-st.session_state['client_bp'] = st.session_state['sod_collateral'].assign(**{'BUYING POWER': st.session_state['client_bp']['COLLATERAL']})
+
+st.session_state['client_bp'] = st.session_state['sod_collateral'].assign(**{'BUYING POWER': st.session_state['sod_collateral']['COLLATERAL']})
 
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>CM COLLATERAL AT CCP</p>", unsafe_allow_html=True)
 sod_collateral_ccp = pd.DataFrame({'COLLATERAL ACCOUNT': ['OSA'],
