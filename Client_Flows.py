@@ -26,7 +26,7 @@ st.session_state['eod_prices'] = st.sidebar.data_editor(eod_prices, disabled=('S
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>BROKER PARAMETERS - B/O</p>", unsafe_allow_html=True)
 st.session_state['mm_buffer'] = st.sidebar.number_input(label='MM Buffer', min_value=0.,max_value=1., value=0.1, step=0.01, format='%.2f', help='MM = max(LONG, SHORT) * (1 + MM Buffer) + Fees')
 st.session_state['im_buffer'] = st.sidebar.number_input(label='IM Buffer', min_value=0.,max_value=1., value=0.25, step=0.01, format='%.2f', help='IM = max(LONG, SHORT) * (1 + IM Buffer) + Fees')
-st.session_state['fees'] = st.sidebar.number_input(label='Fees', min_value=0,max_value=5000, value=10, step=1, format='%.2f') 
+st.session_state['fees'] = st.sidebar.number_input(label='Fees', min_value=0,max_value=5000, value=10, step=1) 
 st.sidebar.markdown("<p style='text-align: center;'font-size:18px;'>IM AND MM - COMPUTED BY B/O & SENT TO F/O</p>", unsafe_allow_html=True)
 fit_margins = pd.DataFrame(st.session_state['qccp_margins'].max(axis=1))
 fit_margins.columns = ['MM']
