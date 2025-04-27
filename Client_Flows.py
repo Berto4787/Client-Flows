@@ -245,7 +245,8 @@ if 'open_pos' in st.session_state.keys():
     st.session_state['open_pos'] = st.session_state['open_pos'].reset_index()
     st.session_state['open_pos'] = st.session_state['open_pos'].assign(**{'MAINTENANCE MARGIN': np.abs(np.where((st.session_state['open_pos']['SYMBOL']!='Future') & (st.session_state['open_pos']['QUANTITY']>0), 0.,
                                                                                                                  np.multiply(st.session_state['open_pos']['QUANTITY'], st.session_state['open_pos']['MM']))),
-                                                                         'NLV': np.where((st.session_state['open_pos']['SYMBOL']!='Future') & (st.session_state['open_pos']['QUANTITY']<0), -1 * st.session_state['open_pos']['QUANTITY'] * st.session_state['theor_prices'].loc[st.session_state['open_pos']['SYMBOL']]['THEORETICAL PRICE'] * st.session_state['theor_prices'].loc[st.session_state['open_pos']['SYMBOL']]['CONTRACT SIZE'],0)})
+                                                                         'NLV': np.where((st.session_state['open_pos']['SYMBOL']!='Future') & (st.session_state['open_pos']['QUANTITY']<0), 
+                                                                                         -1 * st.session_state['open_pos']['QUANTITY'] * st.session_state['theor_prices'].loc[st.session_state['open_pos']['SYMBOL'].values[0]]['THEORETICAL PRICE'] * st.session_state['theor_prices'].loc[st.session_state['open_pos']['SYMBOL'].values[0]]['CONTRACT SIZE'],0)})
     if st.session_state['calc_type'] == 'EoD':
         st.session_state['open_pos'] = st.session_state['open_pos'].assign(**{'TOTAL REQUIREMENT': st.session_state['open_pos']['MAINTENANCE MARGIN']})
     elif st.session_state['calc_type'] == 'ItD':   
