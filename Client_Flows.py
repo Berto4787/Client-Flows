@@ -104,7 +104,7 @@ with st.container():
     
     if 'orders' not in st.session_state.keys():
         st.session_state['orders'] = new_pos
-      else:
+    else:
         st.session_state['orders'] = pd.concat([st.session_state['orders'], new_pos], axis=0, ignore_index= True)
     elif st.session_state['new_type'] == 'Trade':
         new_pos = new_pos.assign(**{'PENDING PREMIUM': np.where(st.session_state['new_instrument']=='Future', 0.,
