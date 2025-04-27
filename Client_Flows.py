@@ -102,10 +102,10 @@ with st.container():
                                     'TOTAL REQUIREMENT': np.absolute(np.minimum(np.add(np.add(np.multiply(-1, new_pos['INITIAL MARGIN']), new_pos['PENDING PREMIUM']), new_pos['NLV']), 0))})
         new_pos = new_pos.assign(**{'STATUS': np.where(new_pos['CURRENT BUYING POWER'] > new_pos['TOTAL REQUIREMENT'], 'ACCEPTED', 'REJECTED')})
     
-    if 'orders' not in st.session_state.keys():
-        st.session_state['orders'] = new_pos
-    else:
-        st.session_state['orders'] = pd.concat([st.session_state['orders'], new_pos], axis=0, ignore_index= True)
+        if 'orders' not in st.session_state.keys():
+            st.session_state['orders'] = new_pos
+        else:
+            st.session_state['orders'] = pd.concat([st.session_state['orders'], new_pos], axis=0, ignore_index= True)
     elif st.session_state['new_type'] == 'Trade':
         new_pos = new_pos.assign(**{'PENDING PREMIUM': np.where(st.session_state['new_instrument']=='Future', 0.,
                                                                 np.where(st.session_state['new_side'] == 'Buy', -1, 1) * st.session_state['new_quantity'] * st.session_state['new_price'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['CONTRACT SIZE'])})
