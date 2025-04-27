@@ -97,7 +97,8 @@ with st.container():
         new_pos = new_pos.assign(**{'PENDING PREMIUM': np.where(st.session_state['new_instrument']=='Future', 0.,
                                                                 np.where(st.session_state['new_side'] == 'Buy', -1, 1) * st.session_state['new_quantity'] * st.session_state['new_price'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['CONTRACT SIZE'])})
         new_pos = new_pos.assign(**{'NLV': np.where(st.session_state['new_instrument']=='Future', 0.,
-                                                                np.where(st.session_state['new_side'] == 'Buy, 0., -1 * st.session_state['new_quantity'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['THEORETICAL PRICE'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['CONTRACT SIZE']))})
+                                                                np.where(st.session_state['new_side'] == 'Buy, 0., 
+                                                                -1 * st.session_state['new_quantity'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['THEORETICAL PRICE'] * st.session_state['theor_prices'].loc[st.session_state['new_instrument']]['CONTRACT SIZE']))})
         new_pos = new_pos.assign(**{'CURRENT BUYING POWER':st.session_state['client_bp'].loc[st.session_state['new_client']]['BUYING POWER'],
                                     'TOTAL REQUIREMENT': np.absolute(np.minimum(np.add(np.add(np.multiply(-1, new_pos['INITIAL MARGIN']), new_pos['PENDING PREMIUM']), new_pos['NLV']), 0))})
         new_pos = new_pos.assign(**{'STATUS': np.where(new_pos['CURRENT BUYING POWER'] > new_pos['TOTAL REQUIREMENT'], 'ACCEPTED', 'REJECTED')})
