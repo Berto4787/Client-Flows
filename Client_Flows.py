@@ -243,14 +243,14 @@ if 'open_pos' in st.session_state.keys():
     st.session_state['open_pos'] = st.session_state['open_pos'].set_index('SYMBOL')
     st.session_state['open_pos'] = st.session_state['open_pos'].join(st.session_state['fit_margins'][['MM']], how='left')
     st.session_state['open_pos'] = st.session_state['open_pos'].reset_index()
-    st.session_state['open_pos'] = st.session_state['open_pos'].assign(**{'MAINTENANCE MARGIN': np.abs(np.where((st.session_state['open_pos']['SYMBOL']!='Future') & (st.session_state['open_pos']['QUANTITY']>0), 0.,
+    st.session_state['open_pos'] = st.session_state['open_pos'].assign(**{'MAINTENANCE MARGIN': -1 * np.abs(np.where((st.session_state['open_pos']['SYMBOL']!='Future') & (st.session_state['open_pos']['QUANTITY']>0), 0.,
                                                                                                                  np.multiply(st.session_state['open_pos']['QUANTITY'], st.session_state['open_pos']['MM']))),
                                                                          'NLV': np.where((st.session_state['open_pos']['SYMBOL']!='Future') & (st.session_state['open_pos']['QUANTITY']<0), 
                                                                                          -1 * st.session_state['open_pos']['QUANTITY'] * st.session_state['theor_prices'].loc[st.session_state['open_pos']['SYMBOL'].values[0]]['THEORETICAL PRICE'] * st.session_state['theor_prices'].loc[st.session_state['open_pos']['SYMBOL'].values[0]]['CONTRACT SIZE'],0)})
     if st.session_state['calc_type'] == 'EoD':
-        st.session_state['open_pos'] = st.session_state['open_pos'].assign(**{'TOTAL REQUIREMENT': st.session_state['open_pos']['MAINTENANCE MARGIN']})
+        st.session_state['open_pos'] = st.session_state['open_pos'].assign(**{'TOTAL REQUIREMENT': np.add(st.session_state['open_pos']['MAINTENANCE MARGIN'], st.session_state['open_pos']['NLV'])})
     elif st.session_state['calc_type'] == 'ItD':   
-        st.session_state['open_pos'] = st.session_state['open_pos'].assign(**{'TOTAL REQUIREMENT':np.abs(np.subtract(np.add(np.minimum(st.session_state['open_pos'].CVM, 0), st.session_state['open_pos']['PENDING PREMIUM']),
+        st.session_state['open_pos'] = st.session_state['open_pos'].assign(**{'TOTAL REQUIREMENT':np.abs(np.add(np.add(np.add(np.minimum(st.session_state['open_pos'].CVM, 0), st.session_state['open_pos']['PENDING PREMIUM']), st.session_state['open_pos']['NLV']),
                                                                                                                      st.session_state['open_pos']['MAINTENANCE MARGIN']))})
         
     st.session_state['open_pos'] = st.session_state['open_pos'].drop(columns=['MM'])
@@ -277,7 +277,7 @@ if st.session_state['open_pos'].shape[0]>0:
             if st.session_state['open_pos'].shape[0]:
                 if st.session_state['calc_type'] == 'EoD':
                     cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT OPEN POSITION</p>", unsafe_allow_html=True)
-                    cli.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'RVM', 'PENDING PREMIUM', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
+                    cli.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'RVM', 'PENDING PREMIUM', 'NLV', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
                     cli.text_area("",
                                  """- Quantity: Net quantity at Client/Instrument level, aggregating previous day SoD open position and trades submitted within the day.
  - RVM: Realized Variation Margin aggregated at Client/Instrument level (Both computed for SoD open position and trades submitted within the day).
@@ -310,7 +310,7 @@ if st.session_state['open_pos'].shape[0]>0:
                                   disabled=True)
                 elif st.session_state['calc_type'] == 'ItD':
                     cli.markdown("<p style='text-align: center;'font-size:18px;'>BROKER - CLIENT OPEN POSITION</p>", unsafe_allow_html=True)
-                    cli.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'CVM', 'PENDING PREMIUM', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
+                    cli.dataframe(st.session_state['open_pos'][['CLIENT', 'SYMBOL', 'QUANTITY', 'CVM', 'PENDING PREMIUM', 'NLV', 'MAINTENANCE MARGIN', 'TOTAL REQUIREMENT']], use_container_width=True, hide_index=True)
                     cli.text_area("",
                                  """- Quantity: Net quantity at Client/Instrument level, aggregating previous day SoD open position and trades submitted within the day.
  - CVM: Contingent Variation Margin aggregated at Client/Instrument level (Both computed for SoD open position and trades submitted within the day).
